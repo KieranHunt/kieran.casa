@@ -1,0 +1,10 @@
+{
+    "name": "Kieran Casa",
+    "city": "Cape Town",
+    "work": "Amazon Web Services",
+    "position": "Software Development Engineer",
+    "social": {
+        "github": "https://github.com/KieranHunt",
+        "twitter": "https://twitter.com/kieran_hunt"
+    }
+}
