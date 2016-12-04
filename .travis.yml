@@ -7,3 +7,4 @@ deploy:
   bucket: "kieran.casa"
   skip_cleanup: true
   region: eu-west-1
+  acl: public_read
