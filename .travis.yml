@@ -9,6 +9,8 @@ install:
     - gem install jekyll
 script:
     jekyll build
+before_deploy:
+    - aws s3 rm s3://kieran.casa/ --recursive --region eu-west-1
 deploy:
   provider: s3
   on:
