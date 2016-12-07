@@ -19,6 +19,7 @@ deploy:
   skip_cleanup: true
   region: eu-west-1
   acl: public_read
+  local_dir: _site
 after_deploy:
     - aws configure set preview.cloudfront true
     - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
