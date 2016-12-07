@@ -2,9 +2,11 @@ language: ruby
 cache: pip
 rvm:
     - 2.2
+before_install:
+  - pip install --user awscli
+  - export PATH=$PATH:$HOME/.local/bin
 install:
     - gem install jekyll
-    - pip install awscli
 script:
     jekyll build
 deploy:
