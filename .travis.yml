@@ -2,7 +2,9 @@ language: ruby
 cache: pip
 rvm:
     - 2.2
-install: gem install jekyll
+install:
+    - gem install jekyll
+    - pip install awscli
 script:
     jekyll build
 deploy:
@@ -16,6 +18,5 @@ deploy:
   region: eu-west-1
   acl: public_read
 after_deploy:
-    - pip install awscli
     - aws configure set preview.cloudfront true
     - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
