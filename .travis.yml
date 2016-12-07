@@ -1,10 +1,21 @@
+language: ruby
+cache: pip
+rvm:
+    - 2.3
+install: gem install jekyll
 script:
-    make build
+    jekyll build
 deploy:
   provider: s3
-  access_key_id: $AWS_ACCESS_KEY
-  secret_access_key: $AWS_SECRET_KEY
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY_ID
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
   bucket: "kieran.casa"
   skip_cleanup: true
   region: eu-west-1
   acl: public_read
+after_deploy:
+    - pip install awscli
+    - aws configure set preview.cloudfront true
+    - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
