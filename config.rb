@@ -36,7 +36,9 @@ page '/*.txt', layout: false
 helpers do
   # Font Awesome URL helpers
   def twitter_link(profile: nil, tweet: nil)
-    "<i class='fa fa-twitter'></i>&nbsp;<a href='https://twitter.com/#{profile}'>#{profile}</a>"
+    if profile
+      "<i class='fa fa-twitter'></i>&nbsp;<a href='https://twitter.com/#{profile}'>@#{profile}</a>"
+    end
   end
 
   def github_link(project: nil)
