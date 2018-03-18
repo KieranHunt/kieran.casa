@@ -35,13 +35,21 @@ page '/*.txt', layout: false
 
 helpers do
   def twitter_link(profile: nil, tweet: nil)
-    "<i class='fa fa-twitter'></i><a href='https://twitter.com/#{profile}'>#{profile}</a>"
+    "<i class='fa fa-twitter'></i> <a href='https://twitter.com/#{profile}'>#{profile}</a>"
   end
 
   def github_link(project: nil)
     profile = project[:profile]
     repo = project[:repo]
-    "<i class='fa fa-github'></i><a href='https://github.com/#{profile}/#{repo}'>#{repo}</a>"
+    "<i class='fa fa-github'></i> <a href='https://github.com/#{profile}/#{repo}'>#{repo}</a>"
+  end
+
+  def website_link(url:, text:)
+    "<i class='fa fa-globe'></i> <a href='#{url}'>#{text}</a>"
+  end
+
+  def subreddit_link(name:)
+    "<i class='fa fa-reddit'></i> <a href='https://reddit/r/#{name}'>#{name}</a>"
   end
 end
 
