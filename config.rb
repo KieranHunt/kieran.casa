@@ -34,6 +34,7 @@ page '/*.txt', layout: false
 # https://middlemanapp.com/basics/helper-methods/
 
 helpers do
+  # Font Awesome URL helpers
   def twitter_link(profile: nil, tweet: nil)
     "<i class='fa fa-twitter'></i> <a href='https://twitter.com/#{profile}'>#{profile}</a>"
   end
@@ -50,6 +51,12 @@ helpers do
 
   def reddit_link(subreddit: nil)
     "<i class='fa fa-reddit'></i> <a href='https://reddit.com/r/#{subreddit}/'>/r/#{subreddit}</a>"
+  end
+
+  # Gravitar
+  def gravitar(email:)
+    hash = Digest::MD5.hexdigest(email.chomp.downcase)
+    "http://www.gravatar.com/avatar/#{hash}.jpg"
   end
 end
 
