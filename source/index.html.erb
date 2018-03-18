@@ -20,6 +20,28 @@ title: Kieran Hunt
       <%= twitter_link profile: 'rYouTubeHaiku' %>,
       <%= github_link project: { profile: 'KieranHunt', repo: 'YouTubeHaiku_to_Twitter' } %>
     </div>
+    <p>
+      Posting YouTube links to Twitter is not a fantastic experience. On mobile,
+      Twitter clients tend to leave the Twitter app in order play the video.
+      They'll either leave the app entirely, by sending the users to the YouTube
+      app, or they'll show the video in browser view. This bot fixes that.
+    </p>
+    <p>
+      This bot takes the latest hot posts from
+      <%= reddit_link subreddit: 'youtubehaiku' %> and posts them to
+      <%= twitter_link profile: 'rYouTubeHaiku' %> as native Twitter videos.
+      This allows users to view the videos without leaving their clients.
+    </p>
+    <p>
+      The bot is written in NodeJS and runs in an
+      <%= link_to 'AWS Lambda', 'https://aws.amazon.com/lambda/' %> function. It
+      uses <%= link_to 'IFTTT', 'https://ifttt.com/' %> to convert the Reddit
+      feed into call's to an
+      <%= link_to 'API Gateway', 'https://aws.amazon.com/api-gateway/' %>
+      endpoint. It downloads the YouTube videos using
+      <%= github_link project: { profile: 'rg3', repo: 'youtube-dl' } %> and
+      then uploads them to Twitter's API.
+    </P>
   </div>
   <div class="project">
     <h3 class="project-heading">

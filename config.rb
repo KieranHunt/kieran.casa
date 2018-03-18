@@ -48,8 +48,8 @@ helpers do
     "<i class='fa fa-globe'></i> <a href='#{url}'>#{text}</a>"
   end
 
-  def subreddit_link(name:)
-    "<i class='fa fa-reddit'></i> <a href='https://reddit/r/#{name}'>#{name}</a>"
+  def reddit_link(subreddit: nil)
+    "<i class='fa fa-reddit'></i> <a href='https://reddit.com/r/#{subreddit}/'>/r/#{subreddit}</a>"
   end
 end
 
