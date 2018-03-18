@@ -47,6 +47,25 @@ title: Kieran Hunt
   </div>
   <div class="project">
     <h3 class="project-heading">
+      https-gate
+    </h3>
+    <div class="link-line">
+      <%= website_link url: 'https://https-gate.com', text: 'https-gate.com' %>
+    </div>
+    <p>
+      The <%= website_link url: 'https://n-gate.com', text: 'n-gate.com' %> website posts hilarious weekly summaries of
+      the top hacker news posts. The author of the site is also
+      <%= link_to 'notoriously against serving his site using TLS', 'https://https-gate.com/software/2017/07/12/0/' %>.
+      As a joke, I purchased the <code>https-gate</code> domain and proxy requests through to n-gate.
+    </p>
+    <p>
+      <% link_to 'https://www.ssllabs.com/ssltest/analyze.html?d=https-gate.com' do %>
+        <%= image_tag 'https://sslbadge.org/?domain=https-gate.com' %>
+      <% end %>
+    </p>
+  </div>
+  <div class="project">
+    <h3 class="project-heading">
       Dead Wikipedia
     </h3>
     <div class="link-line">
