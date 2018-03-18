@@ -44,6 +44,18 @@ title: Kieran Hunt
     <div class="link-line">
       <%= website_link url: 'https://southafricanne.ws', text: 'southafricanne.ws' %>
     </div>
+    <p>
+      I usually try to read the news from as many diverse sources as possible. To make this easy I used
+      <%= website_link text: 'Google News', url: 'https://news.google.com' %> as my primary source. Google News parses
+      stories from just about every major and minor South African news outlet.
+    </p>
+    <p>
+      South African News makes use of
+      <%= website_link text: "CloudFlare's Workers", url: 'https://www.cloudflare.com/products/cloudflare-workers/' %>
+      to quickly render the news. Data is sourced from Google News' RSS feed and injected into the page before ever
+      reaching the browser. Javascript is then used to render the page once it reaches the client. Because of this
+      approach, the client can make a single request to the origin and recieve data from two different sources.
+    </p>
   </div>
   <div class="project">
     <h3 class="project-heading">
