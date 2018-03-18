@@ -55,6 +55,12 @@ helpers do
     "<i class='fa fa-reddit'></i>&nbsp;<a href='https://reddit.com/r/#{subreddit}/'>/r/#{subreddit}</a>"
   end
 
+  # Sheilds
+
+  def twitter_shield(profile:)
+    image_tag "https://img.shields.io/twitter/follow/#{profile}.svg?style=flat&label=Followers"
+  end
+
   # Gravitar
   def gravitar(email:)
     hash = Digest::MD5.hexdigest(email.chomp.downcase)
