@@ -56,7 +56,7 @@ helpers do
   # Gravitar
   def gravitar(email:)
     hash = Digest::MD5.hexdigest(email.chomp.downcase)
-    "http://www.gravatar.com/avatar/#{hash}.jpg"
+    "https://www.gravatar.com/avatar/#{hash}.jpg"
   end
 end
 
