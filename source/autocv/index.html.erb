@@ -1,0 +1,17 @@
+---
+title: autocv
+---
+
+<%= partial "header" %>
+
+<div id='autocv' class='container'>
+</div>
+
+<script>
+fetch('https://s3-eu-west-1.amazonaws.com/autocv/autocv/index.html')
+  .then(response => response.text())
+  .then(text => {
+    var div = document.getElementById('autocv');
+    div.innerHTML = text 
+  })
+</script>
