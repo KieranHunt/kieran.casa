@@ -77,3 +77,8 @@ configure :build do
   activate :asset_hash
   activate :minify_html
 end
+
+after_build do |_|
+  # Copy the headers directive file into the build directory
+  FileUtils.cp_r 'source/_headers', 'build'
+end
