@@ -58,7 +58,7 @@ helpers do
   # Sheilds
 
   def twitter_shield(profile:)
-    image_tag "https://img.shields.io/twitter/follow/#{profile}.svg?style=flat&label=Followers"
+    image_tag "https://img.shields.io/twitter/follow/#{profile}.svg?style=flat&label=Followers&logo=twitter&maxAge=3600"
   end
 
   # Gravitar
