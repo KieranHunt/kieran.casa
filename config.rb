@@ -7,6 +7,10 @@ activate :autoprefixer do |prefix|
   prefix.browsers = "last 2 versions"
 end
 
+activate :hotjar do |hj|
+  hj.hotjar_id = '836688'
+end
+
 # Layouts
 # https://middlemanapp.com/basics/layouts/
 
