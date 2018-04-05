@@ -1,0 +1,4 @@
+[build]
+  functions = '.netlify/functions/'
+  publish = 'build/'
+  command = 'bundle install && bundle exec middleman build && mkdir -p build/.netlify/functions/ && cp .netlify/functions/fetch_autocv.js build/.netlify/functions/fetch_autocv.js'
