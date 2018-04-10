@@ -8,7 +8,6 @@
     <link rel="icon" type="image/ico" href="<%= gravitar email: 'kieran.hunt92@gmail.com' %>">
     <!-- Use the title from a page's frontmatter if it has one -->
     <title><%= current_page.data.title || "Kieran Hunt" %></title>
-    <%= stylesheet_link_tag "site" %>
     <%= yield_content :assets %>
   </head>
   <body>
