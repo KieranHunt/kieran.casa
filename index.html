@@ -14,6 +14,7 @@
             <div class="border-grey border rounded-full">
                 <div id="default-picture" class="h-32 w-32 rounded-full border-2 border-white bg-cover bg-center hidden" style="background-image: url(kieran.jpeg)"></div>
                 <div id="halloween-picture" class="h-32 w-32 rounded-full border-2 border-white bg-cover bg-center hidden" style="background-image: url(spooky.gif)"></div>
+                <div id="christmas-picture" class="h-32 w-32 rounded-full border-2 border-white bg-cover bg-center hidden" style="background-image: url(christmas.gif)"></div>
             </div>
             <h1 class="text-5xl tracking-wide font-extrabold">
                 Kieran Hunt
@@ -39,6 +40,9 @@
         const date = new Date();
         if (date.getMonth() === 9)
             id = 'halloween-picture'
+        if (date.getMonth() === 11)
+            if (date.getDay() <= 24)
+                id = 'christmas-picture'
             
         document.getElementById(id).classList.remove('hidden')
     </script>
