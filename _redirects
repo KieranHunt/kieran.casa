@@ -1,0 +1,2 @@
+# Weather API is on AWS Lambda
+/api/weather.json https://4kk7vqx714.execute-api.eu-west-1.amazonaws.com/default/kieran-casa-api 200
