@@ -10,8 +10,9 @@
 </head>
 <body class="bg-grey-lightest subpixel-antialiased font-sans text-black">
     <div class="flex flex-col h-screen">
-        <nav class="flex flex-row-reverse items-end">
-            <a href="/projects/" class="bg-grey-dark hover:bg-black no-underline text-white font-bold py-1 px-2 rounded-sm mx-2 my-2">Projects</a>
+        <nav class="flex justify-between flex-none flex-row-reverse">
+            <a href="/projects/" class="bg-grey-dark hover:bg-black no-underline text-white font-bold border-2 border-grey-dark py-1 px-2 rounded-sm mx-2 my-2">Projects</a>
+            <div id="tempurature" class="hidden no-underline border-2 border-grey-dark font-bold text-grey-dark py-1 px-2 rounded-sm mx-2 my-2"></div>
         </nav>
         <div class="flex flex-col items-center justify-center h-screen">
             <div class="border-grey border rounded-full">
@@ -39,6 +40,8 @@
     <script>
         console.log('📓: https://github.com/KieranHunt/kieran.casa')
         
+        // Pick profile picture
+        
         var id = 'default-picture'
         const date = new Date();
         if (date.getMonth() === 9)
@@ -48,6 +51,22 @@
                 id = 'christmas-picture'
             
         document.getElementById(id).classList.remove('hidden')
+        
+        // Set current weather
+        
+        fetch('/api/weather.json')
+          .then(function(response) {
+            return response.json()
+          })
+          .then(function(weather) {
+            console.log(weather.currently.apparentTemperature)
+            tempInFarenheit = weather.currently.apparentTemperature
+            tempInCelcius = Math.trunc((tempInFarenheit - 32.0) * (5/9))
+            
+            tempElement = document.getElementById('tempurature')
+            tempElement.innerHTML = `${tempInCelcius}°C`
+            tempElement.classList.remove('hidden')
+          });
     </script>
 </body>
 </html>
