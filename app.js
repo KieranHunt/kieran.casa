@@ -3,15 +3,17 @@
 
   // Pick profile picture
 
-  var id = 'default-picture'
+  var id = 'default'
   const date = new Date()
   if (date.getMonth() === 9)
-      id = 'halloween-picture'
+      id = 'halloween'
   if (date.getMonth() === 11)
       if (date.getDay() <= 24)
-          id = 'christmas-picture'
+          id = 'christmas'
       
-  document.getElementById(id).classList.remove('hidden')
+  element = document.getElementById('picture')
+  url = element.getAttribute(`data-${id}`)
+  element.style.backgroundImage = `url(${url})`
 
   // Set current weather
 
