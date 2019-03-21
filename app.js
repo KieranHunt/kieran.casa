@@ -27,7 +27,4 @@
       tempElement.innerHTML = `${tempInCelcius}°C`
       tempElement.classList.remove('hidden')
     });
-
-  // Initialize QuickLink
-  quicklink();
 })();
