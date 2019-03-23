@@ -1,0 +1,14 @@
+{
+    "prod": {
+        "awscloudformation": {
+            "AuthRoleName": "kierancasa-20190323140824-authRole",
+            "UnauthRoleArn": "arn:aws:iam::364265685121:role/kierancasa-20190323140824-unauthRole",
+            "AuthRoleArn": "arn:aws:iam::364265685121:role/kierancasa-20190323140824-authRole",
+            "Region": "eu-west-1",
+            "DeploymentBucketName": "kierancasa-20190323140824-deployment",
+            "UnauthRoleName": "kierancasa-20190323140824-unauthRole",
+            "StackName": "kierancasa-20190323140824",
+            "StackId": "arn:aws:cloudformation:eu-west-1:364265685121:stack/kierancasa-20190323140824/5cd8ef20-4d64-11e9-bebb-06366d428b7a"
+        }
+    }
+}
