@@ -1,4 +1,10 @@
 version: 0.1
+backend:
+  phases:
+    build:
+      commands:
+        - amplifyPush --simple
+        - echo "👌🏻"
 frontend:
   phases:
     # IMPORTANT - Please verify your build commands
