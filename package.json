@@ -1,0 +1,19 @@
+{
+	"scripts": {
+		"dev": "next",
+		"build": "next build",
+		"start": "next start",
+		"export": "next export"
+	},
+	"dependencies": {
+		"next": "^9.3.4",
+		"next-mdx-enhanced": "^2.4.0",
+		"react": "^16.13.1",
+		"react-dom": "^16.13.1"
+	},
+	"devDependencies": {
+		"@fullhuman/postcss-purgecss": "^2.1.2",
+		"autoprefixer": "^9.7.6",
+		"tailwindcss": "^1.2.0"
+	}
+}

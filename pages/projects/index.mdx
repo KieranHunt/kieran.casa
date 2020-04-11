@@ -1,0 +1,30 @@
+---
+layout: "projects-page"
+title: "Projects"
+---
+
+# Projects
+
+## 📰 [South African News](https://southafricanne.ws/)
+
+I usually try to read the news from as many diverse sources as possible. To make this easy I used Google News as my primary source. Google News parses stories from just about every major and minor South African news outlet. South African News makes use of CloudFlare's Workers to quickly render the news. Data is sourced from Google News' RSS feed and injected into the page before reaching the browser. Javascript is then used to render the page once it reaches the client. Because of this approach, the client can make a single request to the origin and recieves data from two different sources.
+
+## 🔒 [https-gate](https://https-gate.com/)
+
+The n-gate.com website posts hilarious weekly summaries of the top hacker news posts. The author of the site is also also notoriously against serving his site using with TLS. As a joke, I purchased the https-gate domain and proxy requests through to n-gate.
+
+## 💀 [Dead Wikipedia](https://twitter.com/dead_wikipedia)
+
+Wikipedia loves lists and so do I. One of the most frequently updated articles is the "Deaths in `<current year/>`". This bot, using IFTTT, posts the name of the person as they are added to the list.
+
+## 📝 [Auto CV](https://kieran.casa/autocv/)
+
+I was inspired by a Tweet from [@TechnicallyRon](https://twitter.com/TechnicallyRon) wherein he made a CV (or résumé) by letting Google autocomplete finish his sentences. I took this one step further by regenerating the CV every day
+
+## 👕 [Vote for Kieran](https://voteforkieran.xyz/)
+
+I made this website to experiment with tailwindcss. So far it has been a fantastic library and I've been able to produce some really good looking sites.
+
+## 📹 [YouTubeHaiku 👉 Twitter](https://twitter.com/rYouTubeHaiku)
+
+Posting YouTube links to Twitter is not a fantastic experience. On mobile, Twitter clients tend to leave the Twitter app in order play the video. They'll either leave the app entirely, by sending the users to the YouTube app, or they'll show the video in browser view. This bot fixes that. This bot takes the latest hot posts from the [/r/youtubehaiku](https://www.reddit.com/r/youtubehaiku/) subreddit and posts them to [@rYouTubeHaiku](https://twitter.com/rYoutubeHaiku) as native Twitter videos. This allows users to view the videos without leaving their clients. The bot is written in NodeJS and runs in on AWS Lambda.
