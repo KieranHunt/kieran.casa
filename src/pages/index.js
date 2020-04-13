@@ -53,7 +53,8 @@ const recentPosts = [
 
 export default () => (
 	<Layout>
-		<div className="flex justify-between mt-32">
+		<div className="h-24"></div>
+		<div className="flex justify-between">
 			<div></div>
 			<div>
 				<div className="w-100 flex items-center justify-between">
