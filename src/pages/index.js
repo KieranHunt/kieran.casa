@@ -70,7 +70,10 @@ export default () => (
 				</h2>
 				<p className="text-center text-gray-600 text-sm">Tinkerer of things</p>
 				<p className="text-center text-gray-600 text-sm">
-					⛰ Cape Town (<Tempurature />), South Africa 🇿🇦
+					⛰ Cape Town, South Africa 🇿🇦
+				</p>
+				<p className="text-center text-gray-600 text-sm h-4">
+					<Tempurature />
 				</p>
 			</div>
 			<div></div>
