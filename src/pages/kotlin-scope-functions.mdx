@@ -1,0 +1,71 @@
+import PostLayout from "../components/post-layout";
+export default PostLayout;
+
+# Kotlin Scope Functions
+
+📓 [Kotlin's docs on scope functions](https://kotlinlang.org/docs/reference/scope-functions.html):
+
+> The Kotlin standard library contains several functions whose sole purpose is to execute a block of code within the context of an object.
+> When you call such a function on an object with a [lambda expression](https://kotlinlang.org/docs/reference/lambdas.html) provided, it forms a temporary scope.
+> In this scope, you can access the object without its name. Such functions are called scope functions. There are five of them: `let`, `run`, `with`, `apply`, and `also`.
+
+| Scope Function | Context Object Reference | Return Value  | Is Extension Function? |
+| -------------- | ------------------------ | ------------- | :--------------------: |
+| `let`          | `it`                     | lambda result |           ✅           |
+| `run`          | `this`                   | lambda result |           ✅           |
+| `with`         | `this`                   | lambda result |           ❌           |
+| `apply`        | `this`                   | `this`        |           ✅           |
+| `also`         | `it`                     | `it`          |           ✅           |
+
+## let
+
+```kotlin
+listOf("Tom", "Dick", "Harry")
+  .map { "$it tunnel" }
+  .let(::println)
+
+// [Tom tunnel, Dick tunnel, Harry tunnel]
+```
+
+## run
+
+```kotlin
+listOf("Tom", "Dick", "Harry")
+  .run {
+    map { "$it tunnel" }
+      .forEach(::println)
+  }
+
+// Tom tunnel
+// Dick tunnel
+// Harry tunnel
+```
+
+## with
+
+```kotlin
+with(listOf("Tom", "Dick", "Harry")) {
+  map { "$it tunnel" }
+    .forEach(::println)
+}
+
+// Tom tunnel
+// Dick tunnel
+// Harry tunnel
+```
+
+## apply
+
+```kotlin
+listOf("Tom", "Dick", "Harry")
+  .apply {
+    map { "$it tunnel" }
+  }
+  .forEach(::println)
+
+// Tom tunnel
+// Dick tunnel
+// Harry tunnel
+```
+
+## also
