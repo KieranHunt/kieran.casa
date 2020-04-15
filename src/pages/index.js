@@ -5,7 +5,7 @@ import Tempurature from "../components/tempurature";
 const recentPosts = [
 	// {
 	// 	title: "🔬 Kotlin Scope Functions",
-	// 	link: "/kotlin-scope-functions",
+	// 	link: "/kotlin-scope-functions/",
 	// 	description:
 	// 		"Dive deep into Kotlin's scope functions and eliminate those pesky temporary variables.",
 	// 	publishedDate: new Date("2020-04-12"),
@@ -83,6 +83,7 @@ export default () => (
 		<div className="mx-auto max-w-xl px-2 md:max-w-screen-md">
 			{recentPosts.map((post) => postItem({ post }))}
 		</div>
+		<div className="h-24"></div>
 	</Layout>
 );
 
@@ -119,7 +120,7 @@ const postItem = ({ post }) => {
 	return (
 		<div>
 			{title()}
-			<div className="h-2"></div>
+			<div className="h-4"></div>
 			<p>{post.description}</p>
 			{publishedDate()}
 			<div className="h-4"></div>

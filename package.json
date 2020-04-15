@@ -12,6 +12,7 @@
     "gatsby-plugin-postcss": "^2.2.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-highlight.js": "^1.0.7",
     "svg-loaders-react": "^2.2.1"
   },
   "devDependencies": {
