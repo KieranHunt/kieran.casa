@@ -2,14 +2,10 @@ import React from "react";
 import { MDXProvider } from "@mdx-js/react";
 import Layout from "../components/layout";
 import Highlight from "react-highlight.js";
+import "../styles/dracula.highlight.js.css"
 
 export default ({ children }) => (
 	<Layout>
-		<link
-			rel="stylesheet"
-			type="text/css"
-			href="https://cdn.jsdelivr.net/gh/dracula/highlightjs@master/dracula.css"
-		/>
 		<div className="h-24"></div>
 		<div className="mx-auto max-w-xl px-2 md:max-w-screen-md">
 			<MDXProvider
