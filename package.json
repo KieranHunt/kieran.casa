@@ -10,6 +10,7 @@
     "gatsby-cli": "^2.11.7",
     "gatsby-plugin-mdx": "^1.1.7",
     "gatsby-plugin-postcss": "^2.2.1",
+    "gatsby-plugin-purgecss": "^5.0.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-highlight.js": "^1.0.7",
