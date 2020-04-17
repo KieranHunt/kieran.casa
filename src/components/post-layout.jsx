@@ -7,7 +7,7 @@ import "../styles/dracula.highlight.js.css"
 export default ({ children }) => (
 	<Layout>
 		<div className="h-24"></div>
-		<div className="mx-auto max-w-xl px-2 md:max-w-screen-md">
+		<div className="mx-auto max-w-xl px-3 md:px-0 md:max-w-screen-md">
 			<MDXProvider
 				components={{
 					table: (props) => (
@@ -29,7 +29,7 @@ export default ({ children }) => (
 					th: (props) => (
 						<th
 							{...props}
-							className="text-left py-3 px-4 uppercase font-semibold text-sm font-semibold"
+							className="text-left py-3 px-1 md:px-4 uppercase font-medium md:font-semibold text-sm"
 						/>
 					),
 
