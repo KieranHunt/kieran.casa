@@ -2,7 +2,7 @@ import React from "react";
 import { MDXProvider } from "@mdx-js/react";
 import Layout from "../components/layout";
 import Highlight from "react-highlight.js";
-import "../styles/dracula.highlight.js.css"
+import "../styles/dracula.highlight.js.css";
 
 export default ({ children }) => (
 	<Layout>
@@ -47,89 +47,75 @@ export default ({ children }) => (
 						</>
 					),
 
-					p: (props) => <p {...props} className="mb-6" />,
+					p: (props) => <p {...props} className="mb-4" />,
 
 					h1: (props) => (
 						<>
 							<h1
 								{...props}
-								className="font-bold text-4xl text-teal-400 tracking-wide"
+								className="font-bold text-4xl text-teal-400 tracking-wide mb-8"
 							/>
-							<div className="h-4"></div>
 						</>
 					),
 					h2: (props) => (
 						<>
-							<div className="h-4"></div>
 							<h2
 								{...props}
-								className="font-semibold text-2xl text-teal-400 tracking-wide"
+								className="font-semibold text-2xl text-teal-400 tracking-wide mb-4"
 							/>
-							<div className="h-2"></div>
 						</>
 					),
 					h3: (props) => (
 						<>
-							<div className="h-3"></div>
 							<h3
 								{...props}
-								className="font-semibold text-xl text-teal-400 tracking-wide"
+								className="font-semibold text-xl text-teal-400 tracking-wide mb-4"
 							/>
-							<div className="h-1"></div>
 						</>
 					),
 					h4: (props) => (
 						<>
-							<div className="h-2"></div>
 							<h4
 								{...props}
 								className="font-semibold text-teal-400 tracking-wide"
 							/>
-							<div className="h-1"></div>
 						</>
 					),
 					h5: (props) => (
 						<>
-							<div className="h-1"></div>
 							<h5 {...props} className="font text-teal-400 tracking-wide" />
-							<div className="h-0"></div>
 						</>
 					),
 					h6: (props) => (
 						<>
-							<div className="h-0"></div>
 							<h6
 								{...props}
 								className="font text-teal-400 text-sm tracking-wide"
 							/>
-							<div className="h-0"></div>
 						</>
 					),
 
 					a: (props) => (
 						<a
 							{...props}
-							className="inline-block border-b border-dotted border-teal-400 hover:text-teal-400"
+							className="border-b border-dotted border-teal-400 hover:text-teal-400"
 						/>
 					),
 
 					inlineCode: (props) => (
 						<code
 							{...props}
-							className="bg-gray-200 px-1 py-1 rounded font-mono text-gray-800"
+							className="bg-gray-200 px-1 py-1 rounded font-mono text-gray-700 text-sm"
 						/>
 					),
 
 					pre: (props) => (
 						<>
-							<div className="h-4"></div>
-							<Highlight language={props.children.props.className}>
+							<Highlight language={props.children.props.className} className="mb-4">
 								{props.children.props.children}
 							</Highlight>
-							<div className="h-4"></div>
 						</>
 					),
-
 
 					blockquote: (props) => (
 						<>
@@ -137,6 +123,24 @@ export default ({ children }) => (
 								<blockquote {...props} className="text-gray-800" />
 							</div>
 						</>
+					),
+
+					ul: (props) => (
+						<>
+						<ul {...props} className="list-disc list-inside px-4 mb-4" />
+						</>
+					),
+
+					ol: (props) => (
+						<ul {...props} className="list-decimal list-inside px-4 mb-4" />
+					),
+
+					strong: (props) => (
+						<strong {...props} className="font-bold text-gray-900 tracking-wide" />
+					),
+
+					hr: (props) => (
+						<hr {...props} className="border-t-2 border-teal-400 mb-4" />
 					),
 				}}
 			>
