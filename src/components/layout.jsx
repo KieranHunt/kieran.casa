@@ -1,8 +1,13 @@
 import React from "react";
 import "../styles/tailwind.css";
+import { Helmet } from "react-helmet";
 
 export default ({ children }) => (
 	<>
+		<Helmet>
+			<meta charSet="utf-8" />
+			<title>Kieran Hunt</title>
+		</Helmet>
 		<div className="flex flex-col min-h-screen font-sans text-gray-800 text-base antialiased bg-gray leading-normal">
 			<header className="bg-teal-400 h-2"></header>
 			<div className="flex-grow">{children}</div>
