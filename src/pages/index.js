@@ -3,13 +3,13 @@ import Layout from "../components/layout";
 import Tempurature from "../components/tempurature";
 
 const recentPosts = [
-	// {
-	// 	title: "🔬 Kotlin Scope Functions",
-	// 	link: "/kotlin-scope-functions/",
-	// 	description:
-	// 		"Dive deep into Kotlin's scope functions and eliminate those pesky temporary variables.",
-	// 	publishedDate: new Date("2020-04-12"),
-	// },
+	{
+		title: "🔬 Kotlin Scope Functions",
+		link: "/kotlin-scope-functions/",
+		description:
+			"Take shallow dive into Kotlin's scope functions and eliminate those pesky temporary variables.",
+		publishedDate: new Date("2020-04-17"),
+	},
 	{
 		title: "📰 South African News",
 		link: "https://southafricanne.ws/",
