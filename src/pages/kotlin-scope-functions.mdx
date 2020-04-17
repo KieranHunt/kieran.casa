@@ -19,53 +19,63 @@ export default PostLayout;
 
 ## let
 
+`.let` is fantastic for replacing an object in a call chain.
+
+
 ```kotlin
 listOf("Tom", "Dick", "Harry")
-  .map { "$it tunnel" }
   .let(::println)
 
-// [Tom tunnel, Dick tunnel, Harry tunnel]
+// 👆 prints: [Tom", "Dick", "Harry"]
 ```
 
 ## run
 
 ```kotlin
 listOf("Tom", "Dick", "Harry")
-  .run {
-    map { "$it tunnel" }
-      .forEach(::println)
-  }
+  .run { size }
 
-// Tom tunnel
-// Dick tunnel
-// Harry tunnel
+// 👆 results in: 3
 ```
 
 ## with
 
 ```kotlin
 with(listOf("Tom", "Dick", "Harry")) {
-  map { "$it tunnel" }
-    .forEach(::println)
+  println("The last element is ${last()}")
+  println("There are $size elements")
 }
 
-// Tom tunnel
-// Dick tunnel
-// Harry tunnel
+// 👆 prints:
+// The last element is Harry
+// There are 3 elements
 ```
 
 ## apply
 
-```kotlin
-listOf("Tom", "Dick", "Harry")
-  .apply {
-    map { "$it tunnel" }
-  }
-  .forEach(::println)
+`.apply` is wonderful for configuring objects, especially those without builders.
 
-// Tom tunnel
-// Dick tunnel
-// Harry tunnel
+```kotlin
+mustableListOf()
+  .apply { add("Tom") }
+  .apply { add("Dick") }
+  .apply { add("Harry") }
+
+// 👆 results in: [Tom, Dick, Harry]
 ```
 
 ## also
+
+`.also` is great for intercepting a call chain and adding some action.
+I use it extensively to add logging, especially before returning from a method.
+
+```kotlin
+mustableListOf("Tom", "Dick")
+  .also(::println)
+  .add("Harry")
+  .also(::println)
+
+// 👆 prints:
+// ["Tom", "Dick"]
+// ["Tom", "Dick", "Harry"]
+```
