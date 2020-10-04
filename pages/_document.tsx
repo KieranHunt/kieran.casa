@@ -10,6 +10,7 @@ class MyDocument extends Document {
     return (
       <Html>
         <Head>
+          <title>Kieran Hunt</title>
           <link
             href="https://fonts.googleapis.com/css2?family=Francois+One&family=Nanum+Pen+Script&family=Source+Code+Pro:wght@400;500&display=swap"
             rel="stylesheet"
