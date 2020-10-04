@@ -3,26 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "dependencies": {
-    "@mdx-js/mdx": "^1.5.8",
-    "@mdx-js/react": "^1.5.8",
-    "gatsby": "^2.20.18",
-    "gatsby-cli": "^2.11.7",
-    "gatsby-plugin-mdx": "^1.1.7",
-    "gatsby-plugin-postcss": "^2.2.1",
-    "gatsby-plugin-purgecss": "^5.0.0",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-helmet": "^6.0.0",
-    "react-syntax-highlighter": "^12.2.1",
-    "svg-loaders-react": "^2.2.1"
-  },
-  "devDependencies": {
-    "tailwindcss": "^1.2.0"
-  },
   "scripts": {
-    "develop": "gatsby develop",
-    "build": "gatsby build"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "repository": {
     "type": "git",
@@ -33,5 +17,18 @@
   "bugs": {
     "url": "https://github.com/KieranHunt/kieran.casa/issues"
   },
-  "homepage": "https://github.com/KieranHunt/kieran.casa#readme"
+  "homepage": "https://github.com/KieranHunt/kieran.casa#readme",
+  "dependencies": {
+    "@mdx-js/loader": "^1.6.18",
+    "@next/mdx": "^9.5.3",
+    "@tailwindcss/typography": "^0.2.0",
+    "@types/node": "^14.11.2",
+    "@types/react": "^16.9.50",
+    "next": "^9.5.3",
+    "postcss-preset-env": "^6.7.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "tailwindcss": "^1.8.10",
+    "typescript": "^4.0.3"
+  }
 }

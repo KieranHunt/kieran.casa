@@ -1,17 +1,19 @@
+const defaultTheme = require("tailwindcss/defaultTheme");
+
 module.exports = {
-	theme: {
-		extend: { spacing: { 72: "18rem", 80: "20rem", 88: "22rem", 96: "24rem" } },
-	},
-	variants: {
-		backgroundColor: [
-			"responsive",
-			"first",
-			"last",
-			"even",
-			"odd",
-			"hover",
-			"focus",
-		],
-	},
-	plugins: [],
+  future: {
+    removeDeprecatedGapUtilities: true,
+  },
+  purge: ["./components/**/*.{js,ts,jsx,tsx}", "./pages/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {
+      fontFamily: {
+        nanum: ["Nanum Pen Script", ...defaultTheme.fontFamily.sans],
+        francois: ["Francois One", ...defaultTheme.fontFamily.sans],
+        "source-code-pro": ["Source Code Pro", ...defaultTheme.fontFamily.mono],
+      },
+    },
+  },
+  variants: {},
+  plugins: [require("@tailwindcss/typography")],
 };
