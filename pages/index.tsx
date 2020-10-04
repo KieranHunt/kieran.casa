@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const importAll = (r) => {
+const importAll = (r: __WebpackModuleApi.RequireContext) => {
   return r.keys().map((fileName) => ({
     link: fileName.substr(1).replace(/\/index\.mdx$/, ""),
     ...r(fileName).meta,
