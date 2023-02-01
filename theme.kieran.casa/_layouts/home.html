@@ -1,0 +1,18 @@
+---
+layout: default
+---
+
+<div class="container max-w-screen-md px-4 mx-auto md:px-0">
+  <ul class="grid gap-y-8">
+    {%- for post in site.posts -%}
+    <li>
+      <span class="text-gray-400">{{ post.date | date: "%Y-%m-%d" }}</span>
+      <h2 class="text-2xl font-semibold">
+        <a href="{{ post.url | relative_url }}">
+          {{ post.title | escape }}
+        </a>
+      </h2>
+    </li>
+    {%- endfor -%}
+  </ul>
+</div>
