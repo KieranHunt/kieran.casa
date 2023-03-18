@@ -7,7 +7,7 @@ permalink: /the-spirited-man-reads/
 
 This page documents every book seen in [Van Neistat](https://www.youtube.com/channel/UC5mPJA4y5G8Z6aNkY6AxgAw)'s unlimited series titled "Spirited Man".
 
-## 2021-06-19: **Making Your Own Filmmaking Gear vs. Buying It**
+## 2021-06-19: Making Your Own Filmmaking Gear vs. Buying It
 
 [Making Your Own Filmmaking Gear vs. Buying It](https://www.youtube.com/watch?v=1eBKJVRQmrc)
 
@@ -35,7 +35,7 @@ Tom Sachs, Ellen Feldman
 
 None
 
-## 2021-06-08: **Should You Ride A Motorcycle?**
+## 2021-06-08: Should You Ride A Motorcycle?
 
 [Should You Ride A Motorcycle?](https://www.youtube.com/watch?v=q7mQ1PZWcig)
 
