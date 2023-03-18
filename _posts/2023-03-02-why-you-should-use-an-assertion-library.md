@@ -9,7 +9,7 @@ I love assertion libraries.
 But I find I have to frequently explain just why they're so great.
 So I wrote this post that, hopefully, summarises why I think you should use (and love) them too.
 
-## Readability and consitency
+## Readability and consistency
 
 Assertions, by standardising on _how_ to validate state, usually make it very clear _what_ state they're validating.
 
