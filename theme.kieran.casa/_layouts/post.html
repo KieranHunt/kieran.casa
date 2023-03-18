@@ -92,11 +92,25 @@ layout: default
       @apply border-white/10;
     }
 
+    main hr {
+      @apply border-b;
+      @apply border-white/90;
+      @apply mb-4;
+    }
+
     main blockquote > p {
       @apply border-l-4;
       @apply border-white/10;
       @apply pl-4;
       @apply mb-4;
+    }
+
+    main kbd>kbd {
+      @apply px-1;
+      @apply font-mono;
+      @apply text-slate-800;
+      @apply bg-slate-100;
+      @apply rounded-sm;
     }
 
     main code.highlighter-rouge {
