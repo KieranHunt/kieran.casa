@@ -396,4 +396,8 @@ layout: default
     {{ page.date | date: "%Y-%m-%d" }}
   </p>
   <div>{{ content }}</div>
+  <div class="flex justify-between mt-8">
+    {% if page.previous != nil %}<a class="italic text-gray-400 no-underline" href="{{ page.previous.url }}">← Previous post</a>{% endif %}
+    {% if page.next != nil %}<a class="italic text-gray-400 no-underline" href="{{ page.next.url }}">Next post →</a>{% endif %}
+  </div>
 </div>
