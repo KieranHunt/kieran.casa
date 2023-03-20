@@ -1,0 +1,390 @@
+---
+---
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+.content-auto {
+  content-visibility: auto;
+}
+
+article h2 {
+  @apply text-2xl;
+  @apply font-bold;
+  @apply mt-8;
+  @apply mb-4;
+}
+
+article h3 {
+  @apply text-xl;
+  @apply font-bold;
+  @apply mt-6;
+  @apply mb-4;
+}
+
+article h4 {
+  @apply text-lg;
+  @apply font-bold;
+  @apply mt-4;
+  @apply mb-4;
+}
+
+article a {
+  @apply underline;
+}
+
+article p {
+  @apply pb-4;
+}
+
+article ul {
+  @apply grid;
+  @apply gap-y-2;
+  @apply pb-4;
+}
+
+article ul > li:before {
+  content: "—";
+  @apply font-bold;
+  @apply mr-2;
+}
+
+article ol {
+  @apply grid;
+  @apply gap-y-2;
+  @apply pb-4;
+}
+
+article ol > li {
+  @apply list-decimal;
+  @apply list-inside;
+}
+
+article ol > li::marker {
+  @apply font-bold;
+}
+
+article table {
+  @apply w-full;
+  @apply text-sm;
+  @apply border-b;
+  @apply border-white/20;
+  @apply mb-4;
+}
+
+article img {
+  @apply max-h-[384px];
+  @apply mx-auto;
+  @apply mb-4;
+}
+
+article th {
+  @apply font-semibold;
+  @apply text-left;
+  @apply border-b;
+  @apply border-white/20;
+  @apply pb-2;
+}
+
+article td {
+  @apply py-2;
+  @apply border-b;
+  @apply border-white/10;
+}
+
+article hr {
+  @apply border-b;
+  @apply border-white/90;
+  @apply mb-4;
+}
+
+article blockquote > p {
+  @apply border-l-4;
+  @apply border-white/10;
+  @apply pl-4;
+  @apply mb-4;
+}
+
+article kbd>kbd {
+  @apply px-1;
+  @apply font-mono;
+  @apply text-slate-800;
+  @apply bg-slate-100;
+  @apply rounded-sm;
+}
+
+article code.highlighter-rouge {
+  @apply font-mono;
+  @apply ring-1;
+  @apply ring-white/10;
+  @apply bg-slate-800;
+  @apply rounded-sm;
+  @apply px-1;
+}
+
+article pre.highlight {
+  @apply mb-8;
+  @apply mt-4;
+  @apply font-mono;
+  @apply ring-1;
+  @apply ring-white/10;
+  @apply rounded-sm;
+  @apply px-4;
+  @apply pt-6;
+  @apply pb-4;
+  @apply bg-slate-800;
+  @apply overflow-x-auto;
+}
+
+article ::-webkit-scrollbar {
+  display: none;
+}
+
+/* https://github.com/dracula/pygments/blob/master/dracula.css */
+
+.highlight .hll {
+  background-color: #f1fa8c;
+}
+.highlight {
+  background: #282a36;
+  color: #f8f8f2;
+}
+.highlight .c {
+  color: #6272a4;
+}
+.highlight .err {
+  color: #f8f8f2;
+}
+.highlight .g {
+  color: #f8f8f2;
+}
+.highlight .k {
+  color: #ff79c6;
+}
+.highlight .l {
+  color: #f8f8f2;
+}
+.highlight .n {
+  color: #f8f8f2;
+}
+.highlight .o {
+  color: #ff79c6;
+}
+.highlight .x {
+  color: #f8f8f2;
+}
+.highlight .p {
+  color: #f8f8f2;
+}
+.highlight .ch {
+  color: #6272a4;
+}
+.highlight .cm {
+  color: #6272a4;
+}
+.highlight .cp {
+  color: #ff79c6;
+}
+.highlight .cpf {
+  color: #6272a4;
+}
+.highlight .c1 {
+  color: #6272a4;
+}
+.highlight .cs {
+  color: #6272a4;
+}
+.highlight .gd {
+  color: #8b080b;
+}
+.highlight .ge {
+  color: #f8f8f2;
+  text-decoration: underline;
+}
+.highlight .gr {
+  color: #f8f8f2;
+}
+.highlight .gh {
+  color: #f8f8f2;
+  font-weight: bold;
+}
+.highlight .gi {
+  color: #f8f8f2;
+  font-weight: bold;
+}
+.highlight .go {
+  color: #44475a;
+}
+.highlight .gp {
+  color: #f8f8f2;
+}
+.highlight .gs {
+  color: #f8f8f2;
+}
+.highlight .gu {
+  color: #f8f8f2;
+  font-weight: bold;
+}
+.highlight .gt {
+  color: #f8f8f2;
+}
+.highlight .kc {
+  color: #ff79c6;
+}
+.highlight .kd {
+  color: #8be9fd;
+  font-style: italic;
+}
+.highlight .kn {
+  color: #ff79c6;
+}
+.highlight .kp {
+  color: #ff79c6;
+}
+.highlight .kr {
+  color: #ff79c6;
+}
+.highlight .kt {
+  color: #8be9fd;
+}
+.highlight .ld {
+  color: #f8f8f2;
+}
+.highlight .m {
+  color: #bd93f9;
+}
+.highlight .s {
+  color: #f1fa8c;
+}
+.highlight .na {
+  color: #50fa7b;
+}
+.highlight .nb {
+  color: #8be9fd;
+  font-style: italic;
+}
+.highlight .nc {
+  color: #50fa7b;
+}
+.highlight .no {
+  color: #f8f8f2;
+}
+.highlight .nd {
+  color: #f8f8f2;
+}
+.highlight .ni {
+  color: #f8f8f2;
+}
+.highlight .ne {
+  color: #f8f8f2;
+}
+.highlight .nf {
+  color: #50fa7b;
+}
+.highlight .nl {
+  color: #8be9fd;
+  font-style: italic;
+}
+.highlight .nn {
+  color: #f8f8f2;
+}
+.highlight .nx {
+  color: #f8f8f2;
+}
+.highlight .py {
+  color: #f8f8f2;
+}
+.highlight .nt {
+  color: #ff79c6;
+}
+.highlight .nv {
+  color: #8be9fd;
+  font-style: italic;
+}
+.highlight .ow {
+  color: #ff79c6;
+}
+.highlight .w {
+  color: #f8f8f2;
+}
+.highlight .mb {
+  color: #bd93f9;
+}
+.highlight .mf {
+  color: #bd93f9;
+}
+.highlight .mh {
+  color: #bd93f9;
+}
+.highlight .mi {
+  color: #bd93f9;
+}
+.highlight .mo {
+  color: #bd93f9;
+}
+.highlight .sa {
+  color: #f1fa8c;
+}
+.highlight .sb {
+  color: #f1fa8c;
+}
+.highlight .sc {
+  color: #f1fa8c;
+}
+.highlight .dl {
+  color: #f1fa8c;
+}
+.highlight .sd {
+  color: #f1fa8c;
+}
+.highlight .s2 {
+  color: #f1fa8c;
+}
+.highlight .se {
+  color: #f1fa8c;
+}
+.highlight .sh {
+  color: #f1fa8c;
+}
+.highlight .si {
+  color: #f1fa8c;
+}
+.highlight .sx {
+  color: #f1fa8c;
+}
+.highlight .sr {
+  color: #f1fa8c;
+}
+.highlight .s1 {
+  color: #f1fa8c;
+}
+.highlight .ss {
+  color: #f1fa8c;
+}
+.highlight .bp {
+  color: #f8f8f2;
+  font-style: italic;
+}
+.highlight .fm {
+  color: #50fa7b;
+}
+.highlight .vc {
+  color: #8be9fd;
+  font-style: italic;
+}
+.highlight .vg {
+  color: #8be9fd;
+  font-style: italic;
+}
+.highlight .vi {
+  color: #8be9fd;
+  font-style: italic;
+}
+.highlight .vm {
+  color: #8be9fd;
+  font-style: italic;
+}
+.highlight .il {
+  color: #bd93f9;
+}

@@ -5,6 +5,6 @@ url: "https://kieran.casa"
 twitter_username: kieran_hunt
 github_username:  KieranHunt
 
-theme: theme.kieran.casa
 plugins:
   - jekyll-feed
+  - jekyll-postcss
