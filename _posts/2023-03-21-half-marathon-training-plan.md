@@ -37,9 +37,9 @@ Each completed training day will link to a diary entry.
 
 ### 2023-03-21
 
-Day 1! 
+Day 1!
 I almost forgot to run today.
-It was a relatively easy one. 
+It was a relatively easy one.
 Just up to the Molteno reservoir and around a few times.
 I'm not planning to slow down my Brazilian Jiu-jitsu training during this half-marathon prep so it'll be interesting to see how one affects the other.
 BJJ is always on Monday and Wednesday evenings.
