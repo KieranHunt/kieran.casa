@@ -12,28 +12,41 @@ The following table shows the training plan I'll be following.
 It's a modified version of [Hal Higdon's Novice 2 Half Marathon training schedule](https://www.halhigdon.com/training-programs/half-marathon-training/novice-2-half-marathon/) ([archive](https://archive.ph/8PqiF)).
 I've modified Hal's schedule by lengthing it to 16 weeks and making the distances more metric-friendly.
 
-| Week | Monday | Tuesday             | Wednesday | Thursday | Friday | Saturday      | Sunday       |
-| ---- | ------ | ------------------- | --------- | -------- | ------ | ------------- | ------------ |
-| 1    | Rest   | [5 km](#2023-03-21) | 5 km      | 5 km     | Rest   | 6.5 km        | 60 min cross |
-| 2    | Rest   | 5 km                | 5 km      | 5 km     | Rest   | 6.5 km        | 60 min cross |
-| 3    | Rest   | 5 km                | 5 km      | 5 km     | Rest   | 6.5 km        | 60 min cross |
-| 4    | Rest   | 5 km                | 5 km      | 5 km     | Rest   | 6.5 km        | 60 min cross |
-| 5    | Rest   | 5 km                | 5 km      | 5 km     | Rest   | 6.5 km        | 60 min cross |
-| 6    | Rest   | 5 km                | 5 km      | 5 km     | Rest   | 8 km          | 60 min cross |
-| 7    | Rest   | 5 km                | 6.5 km    | 5 km     | Rest   | 10 km         | 60 min cross |
-| 8    | Rest   | 5 km                | 6.5 km    | 5 km     | Rest   | 11.5 km       | 60 min cross |
-| 9    | Rest   | 5 km                | 6.5 km    | 5 km     | Rest   | 13 km         | 60 min cross |
-| 10   | Rest   | 5 km                | 6.5 km    | 5 km     | Rest   | 5 km race     | 60 min cross |
-| 11   | Rest   | 5 km                | 8 km      | 5 km     | Rest   | 14.5 km       | 60 min cross |
-| 12   | Rest   | 5 km                | 8 km      | 5 km     | Rest   | 16 km         | 60 min cross |
-| 13   | Rest   | 5 km                | 8 km      | 5 km     | Rest   | 10 km race    | 60 min cross |
-| 14   | Rest   | 5 km                | 8 km      | 5 km     | Rest   | 18 km         | 60 min cross |
-| 15   | Rest   | 5 km                | 8 km      | 5 km     | Rest   | 19.5 km       | 60 min cross |
-| 16   | Rest   | 5 km                | 3 km      | 3 km     | Rest   | Half marathon |              |
+| Week | Monday | Tuesday             | Wednesday           | Thursday | Friday | Saturday      | Sunday       |
+| ---- | ------ | ------------------- | ------------------- | -------- | ------ | ------------- | ------------ |
+| 1    | Rest   | [5 km](#2023-03-21) | [5 km](#2023-03-22) | 5 km     | Rest   | 6.5 km        | 60 min cross |
+| 2    | Rest   | 5 km                | 5 km                | 5 km     | Rest   | 6.5 km        | 60 min cross |
+| 3    | Rest   | 5 km                | 5 km                | 5 km     | Rest   | 6.5 km        | 60 min cross |
+| 4    | Rest   | 5 km                | 5 km                | 5 km     | Rest   | 6.5 km        | 60 min cross |
+| 5    | Rest   | 5 km                | 5 km                | 5 km     | Rest   | 6.5 km        | 60 min cross |
+| 6    | Rest   | 5 km                | 5 km                | 5 km     | Rest   | 8 km          | 60 min cross |
+| 7    | Rest   | 5 km                | 6.5 km              | 5 km     | Rest   | 10 km         | 60 min cross |
+| 8    | Rest   | 5 km                | 6.5 km              | 5 km     | Rest   | 11.5 km       | 60 min cross |
+| 9    | Rest   | 5 km                | 6.5 km              | 5 km     | Rest   | 13 km         | 60 min cross |
+| 10   | Rest   | 5 km                | 6.5 km              | 5 km     | Rest   | 5 km race     | 60 min cross |
+| 11   | Rest   | 5 km                | 8 km                | 5 km     | Rest   | 14.5 km       | 60 min cross |
+| 12   | Rest   | 5 km                | 8 km                | 5 km     | Rest   | 16 km         | 60 min cross |
+| 13   | Rest   | 5 km                | 8 km                | 5 km     | Rest   | 10 km race    | 60 min cross |
+| 14   | Rest   | 5 km                | 8 km                | 5 km     | Rest   | 18 km         | 60 min cross |
+| 15   | Rest   | 5 km                | 8 km                | 5 km     | Rest   | 19.5 km       | 60 min cross |
+| 16   | Rest   | 5 km                | 3 km                | 3 km     | Rest   | Half marathon |              |
 
 Each completed training day will link to a diary entry.
 
 ## Diary
+
+### 2023-03-22
+
+Treadmill this morning so no Strava image.
+My watch (Garmin Forerunner 245), needed a bit of calibration to get its accuracy right.
+No GPS means it's doing a lot of guesswork.
+
+- Treadmill distance: 5.0 km
+- Watch distance: 4.3 km
+
+It's a pity that you can't calibrate the watch _before_ it sends everything to Strava.
+But I guess that'll mess up all of Strava's analyses since it won't know where to add the distance delta.
+Like should it smear the distance over the complete activity or maybe just add it on at the end?
 
 ### 2023-03-21
 
