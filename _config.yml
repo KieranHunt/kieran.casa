@@ -8,3 +8,6 @@ github_username:  KieranHunt
 plugins:
   - jekyll-feed
   - jekyll-postcss
+
+postcss:
+  cache: false
