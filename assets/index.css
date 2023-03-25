@@ -66,18 +66,20 @@ article ol > li::marker {
   @apply font-bold;
 }
 
+article img {
+  @apply max-h-[384px];
+  @apply mx-auto;
+  @apply mb-4;
+}
+
 article table {
   @apply w-full;
   @apply text-sm;
   @apply border-b;
   @apply border-white/20;
   @apply mb-4;
-}
-
-article img {
-  @apply max-h-[384px];
-  @apply mx-auto;
-  @apply mb-4;
+  @apply w-full;
+  @apply table-fixed;
 }
 
 article th {
@@ -86,6 +88,19 @@ article th {
   @apply border-b;
   @apply border-white/20;
   @apply pb-2;
+  @apply px-2;
+  @apply break-all;
+  @apply text-ellipsis;
+  @apply overflow-hidden;
+  @apply whitespace-nowrap;
+}
+
+article th:first-child {
+  @apply pl-0;
+}
+
+article th:last-child {
+  @apply pr-0;
 }
 
 article td {
