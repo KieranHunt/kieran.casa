@@ -14,7 +14,7 @@ I've modified Hal's schedule by lengthing it to 16 weeks and making the distance
 
 | Week | Monday | Tuesday             | Wednesday           | Thursday            | Friday | Saturday              | Sunday       |
 | ---- | ------ | ------------------- | ------------------- | ------------------- | ------ | --------------------- | ------------ |
-| 1    | Rest   | [5 km](#2023-03-21) | [5 km](#2023-03-22) | [5 km](#2023-03-23) | Rest   | [6.5 km](#2023-03-25) | 60 min cross |
+| 1    | Rest   | [5 km](#2023-03-21) | [5 km](#2023-03-22) | [5 km](#2023-03-23) | Rest   | [6.5 km](#2023-03-25) | [60 min cross](#2023-03-26) |
 | 2    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross |
 | 3    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross |
 | 4    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross |
@@ -32,6 +32,16 @@ I've modified Hal's schedule by lengthing it to 16 weeks and making the distance
 | 16   | Rest   | 5 km                | 3 km                | 3 km                | Rest   | Half marathon         |              |
 
 ## Diary
+
+### 2023-03-26
+
+First cross training day.
+We took advantage of a Kayaking voucher I was given for my birthday.
+Usually, the trip is scheduled to last 2 hours but wind and a bit of rain made our guides decide to turn around early.
+Really good experience regardless.
+See [Cape Kayak Adventures](https://kayak.co.za/) ([archive](https://archive.ph/DdZzk)) for more.
+
+![Strava image. Time: 55m 6s, Distance: 4.2 km, Avg HR: 80 bpm]({{ "/assets/2023-03-21-diary-2023-03-26.jpg" | relative_url }})
 
 ### 2023-03-25
 
