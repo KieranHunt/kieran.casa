@@ -15,7 +15,7 @@ I've modified Hal's schedule by lengthing it to 16 weeks and making the distance
 | Week | Monday | Tuesday             | Wednesday           | Thursday            | Friday | Saturday              | Sunday                      |
 | ---- | ------ | ------------------- | ------------------- | ------------------- | ------ | --------------------- | --------------------------- |
 | 1    | Rest   | [5 km](#2023-03-21) | [5 km](#2023-03-22) | [5 km](#2023-03-23) | Rest   | [6.5 km](#2023-03-25) | [60 min cross](#2023-03-26) |
-| 2    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
+| 2    | Rest   | [5 km](#2023-03-28) | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
 | 3    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
 | 4    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
 | 5    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
@@ -32,6 +32,21 @@ I've modified Hal's schedule by lengthing it to 16 weeks and making the distance
 | 16   | Rest   | 5 km                | 3 km                | 3 km                | Rest   | Half marathon         |                             |
 
 ## Diary
+
+### 2023-03-28
+
+Back on the treadmill today.
+[Last week's calibration](#2023-03-22) seems to have worked since the treadmill matched the watch really well.
+However, most of our gym's treadmills impose a thirty minute time limit on runs.
+That makes it a little annoying when you're running > 6 min/km.
+That either means you need to seek out treadmills with longer time limits or just run faster...
+
+- Distance: 5.01 km
+- Time: 34m 48s
+
+I get pretty bored while running inside.
+Often I listen to music but today I went with podcasts.
+I listened to the tail end of [Hackers Incorporated's *Lessons Learned in 2022-ish*](https://hackersincorporated.com/episodes/lessons-learned-in-2022-ish) ([archive](https://archive.ph/ZRly6)) the start of [ATP's *526: Food Comes From Cans*](https://atp.fm/526) ([archive](https://archive.ph/f6ISd)).
 
 ### 2023-03-26
 
