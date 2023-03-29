@@ -46,7 +46,7 @@ That either means you need to seek out treadmills with longer time limits or jus
 
 I get pretty bored while running inside.
 Often I listen to music but today I went with podcasts.
-I listened to the tail end of [Hackers Incorporated's *Lessons Learned in 2022-ish*](https://hackersincorporated.com/episodes/lessons-learned-in-2022-ish) ([archive](https://archive.ph/ZRly6)) the start of [ATP's *526: Food Comes From Cans*](https://atp.fm/526) ([archive](https://archive.ph/f6ISd)).
+I listened to the tail end of [Hackers Incorporated's _Lessons Learned in 2022-ish_](https://hackersincorporated.com/episodes/lessons-learned-in-2022-ish) ([archive](https://archive.ph/ZRly6)) the start of [ATP's _526: Food Comes From Cans_](https://atp.fm/526) ([archive](https://archive.ph/f6ISd)).
 
 ### 2023-03-26
 

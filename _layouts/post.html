@@ -4,12 +4,12 @@ layout: default
 
 <article class="container max-w-screen-md px-4 mx-auto md:px-0">
   <h2 class="text-5xl leading-none">{{ page.title }}</h2>
-  <p class="pt-1 pb-16 text-gray-400 text-sm">
+  <p class="pt-1 pb-16 text-slate-400 text-sm">
     ✦ {{ page.date | date: "%Y-%m-%d" }}
   </p>
   <div>{{ content }}</div>
   <div class="flex justify-between mt-8">
-    {% if page.previous != nil %}<a class="italic text-gray-400 no-underline" href="{{ page.previous.url }}">← Previous post</a>{% endif %}
-    {% if page.next != nil %}<a class="italic text-gray-400 no-underline" href="{{ page.next.url }}">Next post →</a>{% endif %}
+    {% if page.previous != nil %}<a class="italic text-slate-400 no-underline" href="{{ page.previous.url }}">← Previous post</a>{% endif %}
+    {% if page.next != nil %}<a class="italic text-slate-400 no-underline" href="{{ page.next.url }}">Next post →</a>{% endif %}
   </div>
 </article>
