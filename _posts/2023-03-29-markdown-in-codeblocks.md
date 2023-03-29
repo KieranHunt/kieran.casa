@@ -54,3 +54,21 @@ Here's my example code:
 ````
 `````
 ``````
+
+## Bonus
+
+Markdown code blocks don't have to be delimited by backticks at all.
+So if you're feeling fancy you could use triple tildes (~) instead:
+
+`````markdown
+~~~markdown
+**This** also works just fine.
+Here's my example code:
+
+```json
+{
+  "foo": "bar"
+}
+```
+~~~
+`````
