@@ -15,7 +15,7 @@ I've modified Hal's schedule by lengthing it to 16 weeks and making the distance
 | Week | Monday | Tuesday             | Wednesday           | Thursday            | Friday | Saturday              | Sunday                      |
 | ---- | ------ | ------------------- | ------------------- | ------------------- | ------ | --------------------- | --------------------------- |
 | 1    | Rest   | [5 km](#2023-03-21) | [5 km](#2023-03-22) | [5 km](#2023-03-23) | Rest   | [6.5 km](#2023-03-25) | [60 min cross](#2023-03-26) |
-| 2    | Rest   | [5 km](#2023-03-28) | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
+| 2    | Rest   | [5 km](#2023-03-28) | [5 km](#2023-03-29) | 5 km                | Rest   | 6.5 km                | 60 min cross                |
 | 3    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
 | 4    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
 | 5    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
@@ -32,6 +32,16 @@ I've modified Hal's schedule by lengthing it to 16 weeks and making the distance
 | 16   | Rest   | 5 km                | 3 km                | 3 km                | Rest   | Half marathon         |                             |
 
 ## Diary
+
+### 2023-03-29
+
+Really cool run this morning.
+There was a fire on Table Mountain!
+The Working on Fire helicopters were flying from the lower Molteno reservoir, over us, and on to the mountain.
+We could even feel water droplets from their Bambi buckets.
+To end the run, we sprinted up Upper Orange for a coffee at the Ou Meul.
+
+![Strava image. Distance: 5.3 km, Pace: 6:51 /km, Time: 36m 57s]({{ "/assets/2023-03-21-diary-2023-03-29.jpg" | relative_url }})
 
 ### 2023-03-28
 
