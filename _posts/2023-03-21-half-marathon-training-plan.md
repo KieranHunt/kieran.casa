@@ -10,12 +10,12 @@ This is my first ever half-marathon, so I want to document my training for it.
 
 The following table shows the training plan I'll be following.
 It's a modified version of [Hal Higdon's Novice 2 Half Marathon training schedule](https://www.halhigdon.com/training-programs/half-marathon-training/novice-2-half-marathon/) ([archive](https://archive.ph/8PqiF)).
-I've modified Hal's schedule by lengthing it to 16 weeks and making the distances more metric-friendly.
+I've modified Hal's schedule by lengthing it to 16 weeks—from 12 weeks—and making the distances more metric-friendly.
 
 | Week | Monday | Tuesday             | Wednesday           | Thursday            | Friday | Saturday              | Sunday                      |
 | ---- | ------ | ------------------- | ------------------- | ------------------- | ------ | --------------------- | --------------------------- |
 | 1    | Rest   | [5 km](#2023-03-21) | [5 km](#2023-03-22) | [5 km](#2023-03-23) | Rest   | [6.5 km](#2023-03-25) | [60 min cross](#2023-03-26) |
-| 2    | Rest   | [5 km](#2023-03-28) | [5 km](#2023-03-29) | 5 km                | Rest   | 6.5 km                | 60 min cross                |
+| 2    | Rest   | [5 km](#2023-03-28) | [5 km](#2023-03-29) | [5 km](#2023-03-30) | Rest   | [6.5 km](#2023-04-01) | 60 min cross                |
 | 3    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
 | 4    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
 | 5    | Rest   | 5 km                | 5 km                | 5 km                | Rest   | 6.5 km                | 60 min cross                |
@@ -32,6 +32,23 @@ I've modified Hal's schedule by lengthing it to 16 weeks and making the distance
 | 16   | Rest   | 5 km                | 3 km                | 3 km                | Rest   | Half marathon         |                             |
 
 ## Diary
+
+### 2023-04-01
+
+On the treadmill again.
+This was supposed to be the long run day but again we ran out of time.
+I thought we could squeeze all 6.5km in before Saturday BJJ but my time estimates were off.
+
+- Distance: 5.00 km
+- Time: 34m 37s
+
+### 2023-03-30
+
+Went running after work and before an evening meeting.
+Ended up having to hotfoot it as we almost ran late.
+Didn't make distance.
+
+![Strava image. Run: 4.3 km, Elev Gain: 110 m, Time: 41m 20s]({{ "/assets/2023-03-21-diary-2023-03-30.jpg" | relative_url }})
 
 ### 2023-03-29
 
