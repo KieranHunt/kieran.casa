@@ -19,7 +19,7 @@ date: 2023-04-14 00:00:00 +0200
   
   <form onsubmit="handleSubmit(event)" class="flex gap-x-4 mt-4 text-base" method="GET">
     <label for="recipe-search-query" class="sr-only">Search query</label>
-    <input autofocus id="recipe-search-query" type="text" placeholder="Search for recipes…" class="w-full rounded-md border-0 bg-white/5 px-3.5 py-2 shadow-sm ring-1 ring-inset ring-slate-900/20 hover:ring-slate-400 focus:ring-slate-400 placeholder:text-slate-400 text-slate-900 outline-none subpixel-antialiased"/>
+    <input autofocus id="recipe-search-query" type="text" placeholder="Search for recipes…" class="appearance-none w-full rounded-md bg-white/5 px-3.5 py-2 shadow-sm ring-1 ring-inset ring-slate-900/20 hover:ring-slate-400 focus:ring-slate-400 placeholder:text-slate-400 text-slate-900 outline-none subpixel-antialiased"/>
     <button type="submit" class="rounded-lg font-semibold py-3 px-4 bg-slate-900 text-white flex gap-x-1 items-center">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
         <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
@@ -57,7 +57,7 @@ date: 2023-04-14 00:00:00 +0200
   }
 </script>
 
----
+<hr class="mb-16"/>
 
 Ben Tilden had [this clever idea](https://www.bentilden.com/recipe-search-engine) ([archive](https://archive.ph/cz2Oc)).
 He created a custom Google search form that limits search results to specific recipe websites.
