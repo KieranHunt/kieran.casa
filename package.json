@@ -18,7 +18,7 @@
   "homepage": "https://kieran.casa",
   "dependencies": {
     "autoprefixer": "^10.4.14",
-    "cssnano": "^5.1.15",
+    "cssnano": "^6.0.0",
     "postcss": "^8.4.23",
     "postcss-import": "^15.1.0",
     "tailwindcss": "^3.3.1"
