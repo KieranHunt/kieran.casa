@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Correspondence courses"
-date: 2023-10-04 00:00:00 +0200
+date: 2023-10-04 00:00:00 +0100
 permalink: /correspondence-courses/
 ---
 
