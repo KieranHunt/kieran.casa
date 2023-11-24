@@ -5,6 +5,8 @@ date: 2023-03-21 00:00:00 +0200
 permalink: /half-marathon-training/
 ---
 
+Update (2023-11-24): I moved to Ireland this year and have put my half-marathon plans on hold.
+
 I'm running the [2023 Knynsa Forest half marathon](https://knysnaforestmarathon.co.za/) ([archive](https://archive.ph/Dk0gc)) this year.
 This is my first ever half-marathon, so I want to document my training for it.
 
