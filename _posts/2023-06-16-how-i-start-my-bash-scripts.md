@@ -13,8 +13,8 @@ I've also reordered them to set `xtrace` first to allow it to log out the other 
 #!/usr/bin/env bash
 
 set -o xtrace
-set -o errtrace
 set -o errexit
+set -o errtrace
 set -o nounset
 set -o pipefail
 
@@ -41,8 +41,8 @@ The drawbacks of using this approach seem to be:
 The `-o` flag enables the particular shell option. Use `+o` to disable them.
 
 - `xtrace` - Print each command before executing it, including expanding the value of arguments.
-- `errtrace` - The `errexit` flag disables the `ERR` trap and `errtrace` re-enables it.
 - `errexit` - Stop executing the script when a command fails. Vital.
+- `errtrace` - The `errexit` flag disables the `ERR` trap and `errtrace` re-enables it.
 - `nounset` - Stop executing the script when trying to access unset variables. Also vital.
 - `pipefail` - Bash won't propogate non-zero exit codes to the end of a pipeline. This turns that on.
 
