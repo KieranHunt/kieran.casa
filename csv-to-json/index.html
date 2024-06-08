@@ -1,0 +1,130 @@
+---
+layout: page
+title: "CSV to JSON"
+permalink: /csv-to-json/
+---
+
+<script>
+  async function handleOnDrop(event) {
+    event.preventDefault();
+
+    const items = [...event.dataTransfer.items]
+
+    if (items.length > 1) throw "too many items";
+
+    const item = items[0]
+
+    if (item.kind !== 'file') throw "item is not a file";
+
+    const file = item.getAsFile();
+
+    const text = await file.text();
+
+    document.querySelector('#csv').textContent = text
+  }
+</script>
+
+<script type="module">
+  "use strict";
+  import { parse } from 'https://esm.run/csv-parse/sync'
+
+  /**
+   * Expecting an object that looks as follows:
+   * 
+   * [
+   *  [
+   *    "id",
+   *    "asgArns",
+   *    "endTime",
+   *    "exceptionType",
+   *    "iamPrincipals",
+   *    "lastUpdateTime",
+   *    "operations",
+   *    "percentage",
+   *    "service",
+   *    "startTime",
+   *    "ttl"
+   *  ],
+   *  [
+   *    "EXPzQTJEzoFDnQBJ7c-action1",
+   *    "",
+   *    "2022-01-19T15:53:12.152035Z",
+   *    "INTERNAL",
+   *    "[\"arn:aws:iam::409404036789:role/Admin\"]",
+   *    "2022-01-19T15:51:32.622022Z",
+   *    "[\"DescribeVpcs\"]",
+   *    "50",
+   *    "ec2",
+   *    "2022-01-19T15:51:12.152035Z",
+   *    ""
+   *  ]
+   * ]
+   */ 
+  const keys = (document) => document[0];
+
+  const objectify = (document, keys) => {
+
+    return document.map((row) => {
+      const newObject = {}
+
+      row.forEach((item, index) => {
+        const newKey = keys[index];
+
+        try {
+          const json = JSON.parse(item);
+
+          newObject[newKey] = json;
+        } catch (e) {
+          newObject[newKey] = item;
+        }
+      })
+
+      return newObject;
+    })
+  }
+
+  const handleConvert = (e) => {
+    e.preventDefault();
+
+    const csvSource = document.querySelector('#csv').value;
+
+
+    const csv = parse(csvSource, {});
+
+    const parsedObject = objectify(csv.slice(1, csv.length), keys(csv));
+    const prettyParsedObject = JSON.stringify(parsedObject, null, 2);
+
+    document.querySelector('#json').textContent = prettyParsedObject;
+
+    
+    document.querySelector('#json').style.height = '1px';
+    document.querySelector('#json').style.height = (document.querySelector('#json').scrollHeight)+"px";
+    document.querySelector('#json').focus
+  }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(document.querySelector('#json').textContent)
+  }
+
+  document.querySelector('#json-copy').addEventListener('click', handleCopy)
+  document.querySelector('#convert').addEventListener('click', handleConvert)
+</script>
+
+<label for="csv">CSV</label>
+
+<div id="csv-drop-area" ondrop="handleOnDrop(event)" ondragover="event.preventDefault()">
+<textarea id="csv" name="csv" rows="6" autocomplete="off" autofocus spellcheck="false" class="rounded w-full text-slate-900 resize-none font-mono focus:outline-none focus:ring-4 focus:ring-slate-50/50 bg-slate-50 selection:bg-slate-900 selection:text-slate-100"></textarea>
+</div>
+
+<div class="flex justify-center mt-8">
+ <button type="button" id="convert" class="text-slate-900 bg-slate-50 rounded-lg px-2 py-1 font-medium ">Convert ↓</button>
+</div>
+
+<label for="json" class="mt-8">JSON</label>
+
+<div class="relative">
+  <svg id="json-copy" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 cursor-pointer absolute top-0 right-0 text-slate-900 mr-1 mt-1 group-hover:fill-current fill-transparent group">
+    <path class="group-hover:fill-transparent" stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 00-2.25 2.25v6" />
+  </svg>
+  <textarea id="json" name="csv" rows="4" readonly spellcheck class="rounded w-full text-slate-900 resize-none font-mono focus:outline-none focus:ring-4 focus:ring-slate-50/50 bg-slate-50 px-4 overflow-hidden selection:bg-slate-900 selection:text-slate-100"></textarea> 
+</div>
