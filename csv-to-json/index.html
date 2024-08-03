@@ -70,6 +70,34 @@ permalink: /csv-to-json/
       row.forEach((item, index) => {
         const newKey = keys[index];
 
+        /**
+         * Try to parse the object as JSON.
+         * Otherwise, take it as-is.
+         * 
+         * @example
+         * 
+         * These parse to the same thing:
+         * 
+         * ```csv
+         * key,value
+         * foo,"bar"
+         * ```
+         * 
+         * ```json
+         * [
+         *   {
+         *     "key": "foo",
+         *     "value": "bar"
+         *   },
+         *   {
+         *     "key": "foo",
+         *     "value": "bar"
+         *   }
+         * ]
+         * ```
+         * 
+         * @see {link https://kieran.casa/will-it-json/}
+         */ 
         try {
           const json = JSON.parse(item);
 
