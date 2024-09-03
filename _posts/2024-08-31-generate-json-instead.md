@@ -11,7 +11,7 @@ It's so difficult that certain YAML flaws have names.
 
 Templating YAML is even more difficult. 
 Whitespace is meaningful.
-You've got to manage whitespace in your templating language and whitepsace in the YAML you're generating.
+You've got to manage whitespace in your templating language and whitespace in the YAML you're generating.
 
 ```erb
 {- range ['foo', 'bar', 'baz'] }
