@@ -5,7 +5,7 @@ permalink: /json-truncation/
 date: 2024-09-28 00:00:00 +0000
 ---
 
-In YAML, you can't detect if a document has been truncated,
+In YAML, you can't detect if a document has been truncated.
 
 ```yaml
 my-favourite-things:
