@@ -19,59 +19,52 @@ What if `bar` should've been `bar baz`?
 
 JSON is mostly safe from this.
 [A few posts ago](/will-it-json/), I showed how a JSON document doesn't have to start with an object.
-Let's go through the various types of JSON documents and see how they fare with truncation:
+In this post, we'll explore each type of JSON document and how how it fares with truncation.
+
+> ✨ **This post is interactive** ✨<br/>
+> Use the range sliders to truncate each JSON document and see errors from the JSON parser.
 
 ## `object`
 
-```javascript
-{
-  "foo": "bar"
-}
-```
+{% include json-truncator.html json='{ "foo": "bar" }' id='object' %}
 
-The trailing `}`, which closes a corresponding `{`, protects against truncation.
+*An object's trailing `}`, which closes a corresponding `{`, protects against truncation.*
 
 ## `array`
 
-```javascript
-[
-  "foo",
-  "bar"
-]
-```
+{% include json-truncator.html json='[ "foo", "bar" ]' id='array' %}
 
-The trailing `]`, which closes a corresponding `[`, protects against truncation.
+*The array's trailing `]`, which closes a corresponding `[`, protects against truncation.*
 
 ## `string`
 
-```javascript
-"foo"
-```
+{% include json-truncator.html json='"foo bar baz"' id='string' %}
 
-Again, the unbalanced `"` will indicate truncation.
+*Again, the unbalanced `"` will indicate truncation.*
 
 ## `"true"`, `"false"`, and `"null"`
 
-```javascript
-true
-```
+{% include json-truncator.html json='true' id='true' %}
 
-```javascript
-false
-```
+{% include json-truncator.html json='false' id='false' %}
 
-```javascript
-null
-```
+{% include json-truncator.html json='null' id='null' %}
 
-These three behave in exactly the same way.
-They're literals, so any missing characters will not parse.
+*These three behave in exactly the same way.*
+*They're literals, so any missing characters will not parse.*
+
+<br/>
 
 ## `number`
 
-```javascript
-1337
-```
+{% include json-truncator.html json='1337' id='number-integer' %}
 
-JSON documents, where the document is just a `number`, are **not** truncation safe.
-In the example above, it's impossible to tell if that number should've been 1337 or something longer.
+{% include json-truncator.html json='3.1415926535' id='number-decimal' %}
+
+{% include json-truncator.html json='2.998e8' id='number-exponential' %}
+
+> 🚨 **JSON documents, where the document is just a `number`, are not truncation safe.** 🚨
+
+<br/>
+
+*Using the sliders above you can see that, for various levels of truncation, it's impossible to tell if the number has been truncated or not.*
