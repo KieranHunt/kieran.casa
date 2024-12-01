@@ -1,0 +1,19 @@
+---
+layout: post
+title: "DynamoDB's Time-to-Live Latency"
+permalink: /ddb-ttl/
+date: 2024-12-01 00:00:00 +0200
+---
+
+DynamoDB's Time To Live (TTL) feature will automatically delete items once their TTL timestamp is in the past.
+It's useful to automatically clean up items without having to explicitly go in and make a `DeleteItem` call.
+
+However, DDB's documentation is quite vauge about how long after an item's expiry it'll actually perform the deletion:
+
+> Items with valid, expired TTL attributes may be deleted by the system at any time, typically within a few days of their expiration.
+> _[Using time to live \(TTL\) in DynamoDB - Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html)_
+
+To actually put a number on it, I strung together a few AWS services in us-east-1 and measured that latency.
+The results are plotted in that graph below, updated about once a minute. Times are UTC.
+
+![TTL Graph](https://ddbttlslastack-bucket83908e77-kmhxvq5unlrj.s3.us-east-1.amazonaws.com/ttl-latency.png)
