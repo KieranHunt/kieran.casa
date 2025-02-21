@@ -5,7 +5,7 @@ permalink: /s3-lifecycle/
 date: 2025-02-19 00:00:00 +0200
 ---
 
-[Last year I posted a graph showing DDB's TTL Latency](ddb-ttl). 
+[Last year I posted a graph showing DDB's TTL Latency](/ddb-ttl/). 
 That got me thinking about which other AWS services have latencies that I can measure?
 
 DDB's version of the feature feels quite precise.
