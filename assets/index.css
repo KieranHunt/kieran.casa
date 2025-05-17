@@ -2,9 +2,7 @@
 # Empty YAML frontmatter to appease Jeykll.
 ---
 
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
 .content-auto {
   content-visibility: auto;

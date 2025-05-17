@@ -7,14 +7,14 @@ date: 2023-04-14 00:00:00 +0200
 
 <div class="bg-slate-50 text-slate-900 p-8 mb-16 rounded-xl">
   <p class="flex flex-wrap gap-x-1 subpixel-antialiased">
-    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-text-bottom" src="{{ '/assets/2023-04-14-americas-test-kitchen.webp' | relative_url }}"/> America's Test Kitchen,</span>
-    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-text-bottom" src="{{ '/assets/2023-04-14-bon-appetit.webp' | relative_url }}"/> bon appétit,</span>
-    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-text-bottom" src="{{ '/assets/2023-04-14-david-lebovitz.webp' | relative_url }}"/> David Lebovitz,</span>
-    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-text-bottom" src="{{ '/assets/2023-04-14-epicurious.webp' | relative_url }}"/> Epicurious,</span>
-    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-text-bottom" src="{{ '/assets/2023-04-14-food52.webp' | relative_url }}"/> Food52,</span>
-    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-text-bottom" src="{{ '/assets/2023-04-14-nyt-cooking.webp' | relative_url }}"/> NYT Cooking,</span>
-    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-text-bottom" src="{{ '/assets/2023-04-14-the-spruce-eats.webp' | relative_url }}"/> The Spruce Eats,</span>
-    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-text-bottom" src="{{ '/assets/2023-04-14-woolworths-taste.webp' | relative_url }}"/> Woolworths TASTE</span>
+    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-top" src="{{ '/assets/2023-04-14-americas-test-kitchen.webp' | relative_url }}"/> America's Test Kitchen,</span>
+    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-top" src="{{ '/assets/2023-04-14-bon-appetit.webp' | relative_url }}"/> bon appétit,</span>
+    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-top" src="{{ '/assets/2023-04-14-david-lebovitz.webp' | relative_url }}"/> David Lebovitz,</span>
+    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-top" src="{{ '/assets/2023-04-14-epicurious.webp' | relative_url }}"/> Epicurious,</span>
+    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-top" src="{{ '/assets/2023-04-14-food52.webp' | relative_url }}"/> Food52,</span>
+    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-top" src="{{ '/assets/2023-04-14-nyt-cooking.webp' | relative_url }}"/> NYT Cooking,</span>
+    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-top" src="{{ '/assets/2023-04-14-the-spruce-eats.webp' | relative_url }}"/> The Spruce Eats,</span>
+    <span class="whitespace-nowrap"><img class="w-5 inline grayscale rounded-full m-0 align-top" src="{{ '/assets/2023-04-14-woolworths-taste.webp' | relative_url }}"/> Woolworths TASTE</span>
   </p>
   
   <form onsubmit="handleSubmit(event)" class="flex gap-x-4 mt-4 text-base" method="GET">
@@ -67,7 +67,7 @@ Ben's raison d'être for the custom search engine was:
 
 > [...] finding good recipes online can be surprisingly hard. One of the main problems is the sheer volume of information available. With so many websites, blogs, and recipe databases to choose from, it can be overwhelming.
 
-> And then there’s quality control. Anyone can post a recipe online, regardless of their cooking experience or knowledge. You may—scratch that—you will come across recipes that are poorly written, inaccurate, or just don’t work.
+> And then there's quality control. Anyone can post a recipe online, regardless of their cooking experience or knowledge. You may—scratch that—you will come across recipes that are poorly written, inaccurate, or just don't work.
 
 I thought that was a really neat idea but I wanted to make a few changes to Ben's search engine:
 
