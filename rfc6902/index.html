@@ -1,0 +1,416 @@
+---
+layout: page
+title: "RFC6902"
+permalink: /rfc6902/
+---
+
+<!-- React container -->
+<div id="react-root"></div>
+
+<!-- Import map for dependencies -->
+<script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18",
+      "react-dom": "https://esm.sh/react-dom@18",
+      "react-dom/client": "https://esm.sh/react-dom@18/client",
+      "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime",
+      "rfc6902": "https://esm.sh/rfc6902@5",
+      "json-ptr": "https://esm.sh/json-ptr@3",
+      "@radix-ui/react-tooltip": "https://esm.sh/@radix-ui/react-tooltip@1?external=react,react-dom",
+      "@radix-ui/react-icons": "https://esm.sh/@radix-ui/react-icons@1?external=react",
+      "@radix-ui/react-form": "https://esm.sh/@radix-ui/react-form@0?external=react,react-dom",
+      "@radix-ui/react-separator": "https://esm.sh/@radix-ui/react-separator@1?external=react,react-dom"
+    }
+  }
+</script>
+
+<!-- Babel for JSX compilation with ES modules support -->
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script>
+  // Configure Babel to handle ES modules
+  Babel.registerPlugin(
+    "transform-modules-systemjs",
+    window.Babel.availablePlugins["transform-modules-systemjs"]
+  );
+</script>
+
+<!-- JSX Component -->
+<script type="text/babel" data-type="module">
+  import React, { useState, useCallback } from "react";
+  import { createRoot } from "react-dom/client";
+  import { createPatch } from "rfc6902";
+  import { JsonPointer } from "json-ptr";
+  import * as Tooltip from "@radix-ui/react-tooltip";
+  import * as Form from "@radix-ui/react-form";
+  import * as Separator from "@radix-ui/react-separator";
+  import {
+    CopyIcon,
+    CheckIcon,
+    PlusIcon,
+    UpdateIcon,
+    MinusIcon,
+  } from "@radix-ui/react-icons";
+
+  const JsonPatchGenerator = () => {
+    const initialBefore = {
+      _posts: [{ id: 1, title: "Hello world!" }],
+      _drafts: [{ id: 2, title: "Hello world! Again!" }],
+    };
+    const initialAfter = {
+      _posts: [
+        { id: 1, title: "Hello world..." },
+        { id: 2, title: "Hello world! Again!" },
+      ],
+      _drafts: [],
+    };
+
+    const [beforeJson, setBeforeJson] = useState(
+      JSON.stringify(initialBefore, null, 2)
+    );
+    const [afterJson, setAfterJson] = useState(
+      JSON.stringify(initialAfter, null, 2)
+    );
+
+    // Helper function to create enhanced patch
+    const createEnhancedPatch = useCallback((beforeObj, afterObj) => {
+      const generatedPatch = createPatch(beforeObj, afterObj);
+      const enhanced = generatedPatch.map((operation) => {
+        if (operation.op === "replace") {
+          const previousValue = JsonPointer.get(beforeObj, operation.path);
+          return {
+            ...operation,
+            previousValue,
+          };
+        } else if (operation.op === "remove") {
+          const removedValue = JsonPointer.get(beforeObj, operation.path);
+          return {
+            ...operation,
+            removedValue,
+          };
+        }
+        return operation;
+      });
+      return { patch: generatedPatch, enhanced };
+    }, []);
+
+    // Calculate initial patch
+    const { patch: initialPatch, enhanced: initialEnhanced } =
+      createEnhancedPatch(initialBefore, initialAfter);
+
+    const [patch, setPatch] = useState(initialPatch);
+    const [enhancedPatch, setEnhancedPatch] = useState(initialEnhanced);
+    const [error, setError] = useState("");
+    const [copied, setCopied] = useState(false);
+
+    const generatePatch = useCallback(() => {
+      try {
+        setError("");
+        const beforeObj = JSON.parse(beforeJson);
+        const afterObj = JSON.parse(afterJson);
+        const { patch: generatedPatch, enhanced } = createEnhancedPatch(
+          beforeObj,
+          afterObj
+        );
+
+        setPatch(generatedPatch);
+        setEnhancedPatch(enhanced);
+      } catch (err) {
+        setError(`Error: ${err.message}`);
+        setPatch([]);
+        setEnhancedPatch([]);
+      }
+    }, [beforeJson, afterJson, createEnhancedPatch]);
+
+    // Auto-generate patch when inputs change
+    React.useEffect(() => {
+      const timeoutId = setTimeout(generatePatch, 300);
+      return () => clearTimeout(timeoutId);
+    }, [generatePatch]);
+
+    const handleCopy = useCallback(() => {
+      navigator.clipboard.writeText(JSON.stringify(patch, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1000);
+    }, [patch]);
+
+    return (
+      <Tooltip.Provider>
+        <div className="space-y-8">
+          {/* Before and After sections */}
+          <Form.Root className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Before */}
+            <Form.Field name="beforeJson" className="flex flex-col gap-4">
+              <Form.Label className="text-xl font-semibold text-slate-100">
+                Before
+              </Form.Label>
+              <Form.Control asChild>
+                <textarea
+                  value={beforeJson}
+                  onChange={(e) => setBeforeJson(e.target.value)}
+                  className="w-full h-80 p-4 bg-slate-800 border-2 border-slate-600 rounded-lg text-slate-100 font-mono text-sm resize-none focus:border-slate-400 focus:outline-none transition-colors data-[invalid]:border-red-500"
+                  placeholder="JSON goes here"
+                  spellCheck={false}
+                />
+              </Form.Control>
+              <Form.Message
+                match="valueMissing"
+                className="text-red-400 text-sm"
+              >
+                Please enter JSON data
+              </Form.Message>
+            </Form.Field>
+
+            {/* After */}
+            <Form.Field name="afterJson" className="flex flex-col gap-4">
+              <Form.Label className="text-xl font-semibold text-slate-100">
+                After
+              </Form.Label>
+              <Form.Control asChild>
+                <textarea
+                  value={afterJson}
+                  onChange={(e) => setAfterJson(e.target.value)}
+                  className="w-full h-80 p-4 bg-slate-800 border-2 border-slate-600 rounded-lg text-slate-100 font-mono text-sm resize-none focus:border-slate-400 focus:outline-none transition-colors data-[invalid]:border-red-500"
+                  placeholder="JSON goes here"
+                  spellCheck={false}
+                />
+              </Form.Control>
+              <Form.Message
+                match="valueMissing"
+                className="text-red-400 text-sm"
+              >
+                Please enter JSON data
+              </Form.Message>
+            </Form.Field>
+          </Form.Root>
+
+          {/* Diff section */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-slate-100">Diff</h3>
+
+            {error && (
+              <div className="p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
+                {error}
+              </div>
+            )}
+
+            {!error && patch.length === 0 && (
+              <div className="p-4 bg-slate-800 border-2 border-slate-600 rounded-lg text-slate-400 text-center">
+                No differences found
+              </div>
+            )}
+
+            {!error && patch.length > 0 && (
+              <div className="space-y-3">
+                {enhancedPatch.map((operation, index) => (
+                  <div
+                    key={index}
+                    className="p-4 bg-slate-800 border-2 border-slate-600 rounded-lg"
+                  >
+                    {operation.op === "replace" ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-slate-300 font-mono text-sm">
+                            {operation.path}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 px-2 py-1.5 text-amber-200 bg-amber-900/40 border border-amber-700/50 text-xs font-medium rounded-full">
+                            <UpdateIcon className="w-3 h-3" />
+                            REPLACE
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <div className="text-red-300 text-sm font-medium mb-1">
+                              Previous:
+                            </div>
+                            <pre className="text-red-200 bg-red-900/30 p-2 rounded border border-red-700/50 font-mono text-sm whitespace-pre-wrap overflow-x-auto">
+                              {JSON.stringify(operation.previousValue, null, 2)}
+                            </pre>
+                          </div>
+                          <div>
+                            <div className="text-green-300 text-sm font-medium mb-1">
+                              New:
+                            </div>
+                            <pre className="text-green-200 bg-green-900/30 p-2 rounded border border-green-700/50 font-mono text-sm whitespace-pre-wrap overflow-x-auto">
+                              {JSON.stringify(operation.value, null, 2)}
+                            </pre>
+                          </div>
+                        </div>
+                      </div>
+                    ) : operation.op === "add" ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-slate-300 font-mono text-sm">
+                            {operation.path}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 px-2 py-1.5 text-emerald-200 bg-emerald-900/40 border border-emerald-700/50 text-xs font-medium rounded-full">
+                            <PlusIcon className="w-3 h-3" />
+                            ADD
+                          </span>
+                        </div>
+                        <div>
+                          <div className="text-green-300 text-sm font-medium mb-1">
+                            Added:
+                          </div>
+                          <pre className="text-green-200 bg-green-900/30 p-2 rounded border border-green-700/50 font-mono text-sm whitespace-pre-wrap overflow-x-auto">
+                            {JSON.stringify(operation.value, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    ) : operation.op === "remove" ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-slate-300 font-mono text-sm">
+                            {operation.path}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 px-2 py-1.5 text-red-200 bg-red-900/40 border border-red-700/50 text-xs font-medium rounded-full">
+                            <MinusIcon className="w-3 h-3" />
+                            REMOVE
+                          </span>
+                        </div>
+                        <div>
+                          <div className="text-red-300 text-sm font-medium mb-1">
+                            Removed:
+                          </div>
+                          <pre className="text-red-200 bg-red-900/30 p-2 rounded border border-red-700/50 font-mono text-sm whitespace-pre-wrap overflow-x-auto">
+                            {JSON.stringify(operation.removedValue, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    ) : (
+                      <pre className="text-slate-100 font-mono text-sm whitespace-pre-wrap overflow-x-auto">
+                        {JSON.stringify(operation, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                ))}
+
+                {/* Full patch as single JSON */}
+                <div className="mt-6">
+                  <h4 className="text-lg font-medium text-slate-200 mb-3">
+                    Complete Patch
+                  </h4>
+                  <div className="relative p-4 bg-slate-800 border-2 border-slate-600 rounded-lg">
+                    <Tooltip.Root>
+                      <Tooltip.Trigger asChild>
+                        <button
+                          onClick={handleCopy}
+                          className="absolute top-2 right-2 p-1 text-slate-400 hover:text-slate-200 transition-colors"
+                        >
+                          {copied ? (
+                            <CheckIcon className="w-5 h-5 text-green-400" />
+                          ) : (
+                            <CopyIcon className="w-5 h-5" />
+                          )}
+                        </button>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content
+                          className="bg-slate-900 text-slate-100 px-2 py-1 rounded text-sm border border-slate-600"
+                          sideOffset={5}
+                        >
+                          Copy to clipboard
+                          <Tooltip.Arrow className="fill-slate-900" />
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip.Root>
+                    <pre className="text-slate-100 font-mono text-sm whitespace-pre-wrap overflow-x-auto">
+                      {JSON.stringify(patch, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Info section */}
+          <div className="mt-12">
+            <div className="flex justify-center mb-8">
+              <Separator.Root className="w-24 h-px bg-gradient-to-r from-transparent via-slate-400 to-transparent" />
+            </div>
+            <h4 className="text-lg font-medium text-slate-200 mb-3">
+              About RFC6902
+            </h4>
+            <div className="prose prose-invert prose-sm max-w-none">
+              <p className="text-slate-300">
+                RFC6902 defines a JSON Patch format for expressing a sequence of
+                operations to apply to a JSON document. The patch operations
+                include:
+              </p>
+              <dl className="text-slate-300 mt-2 space-y-2">
+                <dt>
+                  <code class="language-plaintext highlighter-rouge">add</code>
+                </dt>
+                <dd className="ml-4">
+                  Add a value to an object or insert into an array
+                </dd>
+                <dt>
+                  <code class="language-plaintext highlighter-rouge">
+                    remove
+                  </code>
+                </dt>
+                <dd className="ml-4">Remove a value from an object or array</dd>
+                <dt>
+                  <code class="language-plaintext highlighter-rouge">
+                    replace
+                  </code>
+                </dt>
+                <dd className="ml-4">Replace a value</dd>
+                <dt>
+                  <code class="language-plaintext highlighter-rouge">move</code>
+                </dt>
+                <dd className="ml-4">
+                  Move a value from one location to another
+                </dd>
+                <dt>
+                  <code class="language-plaintext highlighter-rouge">copy</code>
+                </dt>
+                <dd className="ml-4">
+                  Copy a value from one location to another
+                </dd>
+                <dt>
+                  <code class="language-plaintext highlighter-rouge">test</code>
+                </dt>
+                <dd className="ml-4">
+                  Test that a value at a location equals a specified value
+                </dd>
+              </dl>
+              <div className="mt-4 space-y-2">
+                <h5 className="text-slate-200 font-medium">References</h5>
+                <ul className="text-slate-300 space-y-1">
+                  <li>
+                    <a
+                      href="https://www.rfc-editor.org/rfc/rfc6902"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline"
+                    >
+                      RFC 6902 Specification
+                    </a>{" "}
+                    : Official JSON Patch specification
+                  </li>
+                  <li>
+                    <a
+                      href="https://github.com/chbrown/rfc6902"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline"
+                    >
+                      rfc6902 JavaScript Library
+                    </a>
+                    : The library used to generate patches on this page
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Tooltip.Provider>
+    );
+  };
+
+  // Render the component
+  const container = document.getElementById("react-root");
+  const root = createRoot(container);
+  root.render(<JsonPatchGenerator />);
+</script>
