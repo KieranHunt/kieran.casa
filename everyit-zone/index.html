@@ -1,0 +1,1091 @@
+---
+layout: page
+title: "everyit.zone"
+permalink: /everyit-zone/
+---
+
+<!-- React container -->
+<div id="react-root"></div>
+
+<!-- Import map for dependencies -->
+<script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18?dev",
+      "react-dom": "https://esm.sh/react-dom@18?dev",
+      "react-dom/client": "https://esm.sh/react-dom@18/client?dev",
+      "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime?dev",
+      "@radix-ui/react-tooltip": "https://esm.sh/@radix-ui/react-tooltip@1?external=react,react-dom",
+      "@radix-ui/react-icons": "https://esm.sh/@radix-ui/react-icons@1?external=react",
+      "@radix-ui/react-separator": "https://esm.sh/@radix-ui/react-separator@1?external=react,react-dom",
+      "@radix-ui/react-toggle-group": "https://esm.sh/@radix-ui/react-toggle-group@1?external=react,react-dom",
+      "@radix-ui/react-collapsible": "https://esm.sh/@radix-ui/react-collapsible@1?external=react,react-dom",
+      "emojibase": "https://esm.sh/emojibase@16?external=react"
+    }
+  }
+</script>
+
+<!-- Babel for JSX compilation with ES modules support -->
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script>
+  // Configure Babel to handle ES modules
+  Babel.registerPlugin(
+    "transform-modules-systemjs",
+    window.Babel.availablePlugins["transform-modules-systemjs"]
+  );
+</script>
+
+<!-- Custom CSS for enhanced animations and accessibility -->
+<style>
+  /* Smooth animations for better UX */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInFromTop {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes bounce {
+    0%,
+    20%,
+    53%,
+    80%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    40%,
+    43% {
+      transform: translate3d(0, -8px, 0);
+    }
+    70% {
+      transform: translate3d(0, -4px, 0);
+    }
+    90% {
+      transform: translate3d(0, -2px, 0);
+    }
+  }
+
+  .animate-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .slide-in-from-top-2 {
+    animation: slideInFromTop 0.2s ease-out;
+  }
+
+  .fade-in-0 {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .zoom-in-95 {
+    animation: fadeIn 0.15s ease-out;
+  }
+
+  /* Enhanced focus styles for better accessibility */
+  .focus-visible:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  /* Reduced motion support for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .border-slate-600 {
+      border-color: #ffffff !important;
+    }
+    .text-slate-400 {
+      color: #ffffff !important;
+    }
+  }
+
+  /* Screen reader only content */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+
+<!-- JSX Component -->
+<script type="text/babel" data-type="module">
+  import React, { useState, useCallback } from "react";
+  import { createRoot } from "react-dom/client";
+  import * as Tooltip from "@radix-ui/react-tooltip";
+  import * as Separator from "@radix-ui/react-separator";
+  import {
+    CopyIcon,
+    CheckIcon,
+    ChevronDownIcon,
+    ChevronUpIcon,
+  } from "@radix-ui/react-icons";
+
+  // Helper function to count words in text
+  const countWords = (text) => {
+    if (!text || typeof text !== "string" || !text.trim()) {
+      return 0;
+    }
+
+    // Split by whitespace and filter out empty strings
+    // This matches the same logic used in processTextWithEmoji for consistency
+    return text
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
+  };
+
+  // Core text processing functionality with comprehensive error handling
+  const processTextWithEmoji = (inputText, emoji) => {
+    try {
+      // Handle empty input or whitespace-only input (Requirement 6.3)
+      if (!inputText || typeof inputText !== "string" || !inputText.trim()) {
+        return "";
+      }
+
+      // Performance optimization: Handle very long text inputs (Requirement 6.4)
+      // Limit processing to reasonable text length to prevent performance issues
+      const MAX_TEXT_LENGTH = 50000; // 50k characters should be reasonable
+      const textToProcess =
+        inputText.length > MAX_TEXT_LENGTH
+          ? inputText.substring(0, MAX_TEXT_LENGTH) + "..."
+          : inputText;
+
+      // Validate emoji parameter
+      if (!emoji || typeof emoji !== "string") {
+        emoji = "👏"; // Fallback to default emoji
+      }
+
+      // Handle multi-line text with preserved line breaks (Requirement 1.5)
+      const lines = textToProcess.split("\n");
+
+      const processedLines = lines.map((line) => {
+        // Handle empty lines
+        if (!line.trim()) {
+          return "";
+        }
+
+        // Enhanced word splitting that properly handles punctuation and numbers (Requirements 6.1, 6.2)
+        // Split by whitespace but preserve punctuation as part of words
+        const words = line
+          .trim()
+          .split(/\s+/)
+          .filter((word) => word.length > 0);
+
+        // Handle single word or no words
+        if (words.length <= 1) {
+          return words.join("");
+        }
+
+        // Insert emoji between words (Requirements 1.3, 1.4)
+        // Numbers and punctuation are treated as part of words
+        return words.join(` ${emoji} `);
+      });
+
+      // Preserve line breaks by joining with newlines
+      return processedLines.join("\n");
+    } catch (error) {
+      // Graceful error handling - return empty string if processing fails (Requirement 6.5)
+      console.warn("Text processing error:", error);
+      return "";
+    }
+  };
+
+  // Text Input Component with enhanced error handling and performance optimization
+  const TextInput = ({ value, onChange, autoFocus = false }) => {
+    const textareaRef = React.useRef(null);
+    const [inputWarning, setInputWarning] = useState("");
+
+    // Memoize word count calculation to avoid expensive operations on every render
+    const wordCount = React.useMemo(() => countWords(value), [value]);
+
+    // Auto-focus functionality that activates on page load (Requirement 1.2)
+    React.useEffect(() => {
+      if (autoFocus && textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, [autoFocus]);
+
+    // Highly optimized input handler with minimal processing per keystroke (Requirement 6.4)
+    const handleInputChange = useCallback(
+      (e) => {
+        const newValue = e.target.value;
+
+        // Update the value immediately for responsive typing
+        onChange(newValue);
+      },
+      [onChange]
+    );
+
+    // Separate effect for warning updates to avoid recreating the input handler
+    React.useEffect(() => {
+      const currentLength = value.length;
+      if (currentLength > 50000) {
+        setInputWarning(
+          "Text too long - will be truncated to 50,000 characters"
+        );
+      } else if (currentLength > 10000) {
+        setInputWarning("Large text detected - processing may be slower");
+      } else {
+        setInputWarning("");
+      }
+    }, [value.length]);
+
+    const textareaId = "emoji-text-input";
+    const warningId = inputWarning ? "input-warning" : undefined;
+
+    return (
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <label
+            htmlFor={textareaId}
+            className="block text-xl font-semibold text-slate-100"
+          >
+            Enter your text
+          </label>
+          {value.length > 0 && (
+            <span
+              className={`text-sm tabular-nums transition-colors duration-200 ${
+                value.length > 10000 ? "text-yellow-400" : "text-slate-400"
+              }`}
+              aria-live="polite"
+              aria-label={`Text statistics: ${value.length.toLocaleString()} characters, ${wordCount.toLocaleString()} words`}
+            >
+              {value.length.toLocaleString()} characters •{" "}
+              {wordCount.toLocaleString()} words
+            </span>
+          )}
+        </div>
+
+        <textarea
+          id={textareaId}
+          ref={textareaRef}
+          value={value}
+          onChange={handleInputChange}
+          placeholder="Type your text here and watch it get delimited with emojis..."
+          className="w-full h-80 p-4 bg-slate-800 border-2 border-slate-600 rounded-lg text-slate-100 font-mono text-sm resize-none focus:border-slate-400 focus:outline-none transition-all duration-200 placeholder-slate-400"
+          spellCheck={false}
+          aria-describedby={warningId}
+          aria-label="Text input for emoji delimitation"
+        />
+
+        {/* Input warning message with improved accessibility (Requirement 6.4) */}
+        {inputWarning && (
+          <div
+            id="input-warning"
+            className="flex items-center space-x-2 text-yellow-400 text-sm transition-opacity duration-200"
+            role="alert"
+            aria-live="assertive"
+          >
+            <span aria-hidden="true">⚠️</span>
+            <span>{inputWarning}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Output Display Component with enhanced error handling and accessibility
+  const OutputDisplay = ({
+    delimitedText,
+    inputText,
+    onCopy,
+    copied,
+    copyError,
+    processingError,
+  }) => {
+    const outputId = "emoji-output";
+    const copyButtonId = "copy-button";
+
+    return (
+      <div className="space-y-4">
+        <label
+          htmlFor={outputId}
+          className="block text-xl font-semibold text-slate-100"
+        >
+          Output
+        </label>
+
+        {/* Output container matching blog's code block styling */}
+        <div
+          className="relative mb-8 mt-4 font-mono ring-1 ring-white/10 rounded-sm px-4 pt-6 pb-4 bg-slate-800 overflow-x-auto min-h-[200px] transition-all duration-200"
+          role="region"
+          aria-labelledby={outputId}
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {/* Copy button with improved accessibility and styling */}
+          {delimitedText && (
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <button
+                  id={copyButtonId}
+                  onClick={onCopy}
+                  disabled={!delimitedText}
+                  className={`
+                    absolute top-2 right-2 p-1.5 transition-all duration-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800
+                    ${
+                      delimitedText
+                        ? "text-slate-400 hover:text-slate-200 hover:scale-110 cursor-pointer"
+                        : "text-slate-600 cursor-not-allowed"
+                    }
+                    ${copied ? "scale-110" : ""}
+                  `}
+                  aria-label={
+                    copied
+                      ? "Text copied to clipboard"
+                      : "Copy delimited text to clipboard"
+                  }
+                  aria-describedby="copy-status"
+                >
+                  {copied ? (
+                    <CheckIcon className="w-5 h-5 text-green-400 transition-colors duration-200" />
+                  ) : copyError ? (
+                    <CopyIcon className="w-5 h-5 text-red-400 transition-colors duration-200" />
+                  ) : (
+                    <CopyIcon className="w-5 h-5 transition-colors duration-200" />
+                  )}
+                </button>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  className="bg-slate-900 text-slate-100 px-2 py-1 rounded text-sm border border-slate-600 z-50 animate-in fade-in-0 zoom-in-95"
+                  sideOffset={5}
+                >
+                  {copied
+                    ? "Copied!"
+                    : copyError
+                    ? "Copy failed - try selecting text manually"
+                    : "Copy to clipboard"}
+                  <Tooltip.Arrow className="fill-slate-900" />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          )}
+
+          {/* Screen reader status for copy operations */}
+          <div
+            id="copy-status"
+            className="sr-only"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            {copied && "Text copied to clipboard"}
+            {copyError && "Copy failed, please try selecting text manually"}
+          </div>
+
+          {/* Error message with improved styling and accessibility */}
+          {copyError && (
+            <div
+              className="absolute top-12 right-2 left-2 sm:left-auto sm:right-2 bg-red-900/50 text-red-200 px-3 py-2 rounded text-sm border border-red-700 max-w-sm z-40 animate-in slide-in-from-top-2 duration-200"
+              role="alert"
+              aria-live="assertive"
+            >
+              <p className="font-medium">Copy failed</p>
+              <p className="text-xs mt-1">
+                Try selecting the text manually and using Ctrl+C (Cmd+C on Mac)
+              </p>
+            </div>
+          )}
+
+          {/* Live preview content with error handling and smooth transitions */}
+          <div
+            id={outputId}
+            className="transition-all duration-200"
+            tabIndex={delimitedText ? 0 : -1}
+            role={delimitedText ? "textbox" : "status"}
+            aria-readonly="true"
+            aria-label={delimitedText ? "Delimited text output" : "Output area"}
+          >
+            {processingError ? (
+              /* Processing error state with improved accessibility */
+              <div className="flex items-center justify-center h-full min-h-[150px] px-2 animate-in fade-in-0 duration-300">
+                <div className="text-center space-y-2" role="alert">
+                  <p className="text-red-400 text-base" aria-hidden="true">
+                    ⚠️ Processing Error
+                  </p>
+                  <p className="text-red-300 text-sm">
+                    Unable to process the text. Try refreshing or using shorter
+                    text.
+                  </p>
+                </div>
+              </div>
+            ) : delimitedText ? (
+              <pre
+                className="text-slate-100 whitespace-pre-wrap text-sm leading-relaxed break-words animate-in fade-in-0 duration-200"
+                aria-label="Delimited text result"
+              >
+                {delimitedText}
+              </pre>
+            ) : (
+              /* Empty input state with improved styling and accessibility */
+              <div className="flex items-center justify-center h-full min-h-[150px] px-2">
+                <p
+                  className="text-slate-400 italic text-center text-base transition-opacity duration-200"
+                  role="status"
+                  aria-live="polite"
+                >
+                  Enter text above to see it delimited with your chosen emoji
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Emoji Selector Component with filterable search using emojibase
+  const EmojiSelector = ({ selectedEmoji, onEmojiSelect }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [emojis, setEmojis] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const searchInputRef = React.useRef(null);
+
+    // Load emojis from emojibase on component mount
+    React.useEffect(() => {
+      const loadEmojis = async () => {
+        try {
+          setLoading(true);
+          const { fetchEmojis } = await import("emojibase");
+
+          // Fetch full emoji data to ensure we get annotation property
+          const emojiData = await fetchEmojis("en", { compact: false });
+
+          // Filter out regional indicator emojis (used for flags)
+          const filteredEmojiData = emojiData.filter((emoji) => {
+            const annotation = emoji.annotation || emoji.label || "";
+            return !annotation.toLowerCase().includes("regional indicator");
+          });
+
+          // Transform emojibase data to our format
+          const transformedEmojis = filteredEmojiData.map((emoji) => ({
+            emoji: emoji.emoji,
+            label: emoji.annotation || emoji.label || "emoji",
+            tags: emoji.tags || [],
+            shortcodes: emoji.shortcodes || [],
+          }));
+
+          setEmojis(transformedEmojis);
+          setError(null);
+        } catch (err) {
+          console.error("Failed to load emojis:", err);
+          setError("Failed to load emojis");
+
+          // Fallback to a basic set of emojis if emojibase fails
+          const fallbackEmojis = [
+            {
+              emoji: "👏",
+              label: "clapping hands",
+              tags: ["clap", "applause"],
+              shortcodes: ["clap"],
+            },
+            {
+              emoji: "🔥",
+              label: "fire",
+              tags: ["fire", "hot"],
+              shortcodes: ["fire"],
+            },
+            {
+              emoji: "💯",
+              label: "hundred points",
+              tags: ["hundred", "perfect"],
+              shortcodes: ["100"],
+            },
+            {
+              emoji: "❤️",
+              label: "red heart",
+              tags: ["heart", "love"],
+              shortcodes: ["heart"],
+            },
+            {
+              emoji: "😂",
+              label: "face with tears of joy",
+              tags: ["laugh", "joy"],
+              shortcodes: ["joy"],
+            },
+            {
+              emoji: "🎉",
+              label: "party popper",
+              tags: ["party", "celebration"],
+              shortcodes: ["tada"],
+            },
+            {
+              emoji: "🚀",
+              label: "rocket",
+              tags: ["rocket", "space"],
+              shortcodes: ["rocket"],
+            },
+            {
+              emoji: "⭐",
+              label: "star",
+              tags: ["star"],
+              shortcodes: ["star"],
+            },
+            {
+              emoji: "💪",
+              label: "flexed biceps",
+              tags: ["strong", "muscle"],
+              shortcodes: ["muscle"],
+            },
+            {
+              emoji: "🎯",
+              label: "direct hit",
+              tags: ["target", "goal"],
+              shortcodes: ["dart"],
+            },
+          ];
+          setEmojis(fallbackEmojis);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadEmojis();
+    }, []);
+
+    // Filter emojis based on search term
+    const filteredEmojis = React.useMemo(() => {
+      if (loading || !emojis.length) {
+        return [];
+      }
+
+      if (!searchTerm.trim()) {
+        return emojis;
+      }
+
+      const searchLower = searchTerm.toLowerCase();
+      return emojis.filter(
+        ({ label, emoji, tags, shortcodes }) =>
+          label.toLowerCase().includes(searchLower) ||
+          emoji === searchTerm ||
+          tags.some((tag) => tag.toLowerCase().includes(searchLower)) ||
+          shortcodes.some((code) => code.toLowerCase().includes(searchLower))
+      );
+    }, [searchTerm, emojis, loading]);
+
+    // Group filtered emojis by category for better organization
+    const getEmojiGroups = (emojiList) => {
+      if (!emojiList.length) return [];
+
+      // If searching, show flat list
+      if (searchTerm.trim()) {
+        return [
+          {
+            label: "Search Results",
+            emojis: emojiList,
+          },
+        ];
+      }
+
+      // Otherwise group by categories (simplified grouping)
+      const groupSize = Math.ceil(emojiList.length / 6);
+      return [
+        {
+          label: "Faces & Emotions",
+          emojis: emojiList.slice(0, groupSize),
+        },
+        {
+          label: "People & Body",
+          emojis: emojiList.slice(groupSize, groupSize * 2),
+        },
+        {
+          label: "Animals & Nature",
+          emojis: emojiList.slice(groupSize * 2, groupSize * 3),
+        },
+        {
+          label: "Food & Drink",
+          emojis: emojiList.slice(groupSize * 3, groupSize * 4),
+        },
+        {
+          label: "Travel & Places",
+          emojis: emojiList.slice(groupSize * 4, groupSize * 5),
+        },
+        {
+          label: "Activities & Objects",
+          emojis: emojiList.slice(groupSize * 5),
+        },
+      ].filter((group) => group.emojis.length > 0);
+    };
+
+    const selectedEmojiData = emojis.find((e) => e.emoji === selectedEmoji);
+    const selectedEmojiLabel = selectedEmojiData?.label || "emoji";
+
+    // Handle opening/closing dropdown
+    const toggleDropdown = () => {
+      setIsOpen(!isOpen);
+      if (!isOpen) {
+        // Focus search input when opening
+        setTimeout(() => {
+          searchInputRef.current?.focus();
+        }, 100);
+      }
+    };
+
+    // Handle emoji selection
+    const handleEmojiClick = (emoji) => {
+      onEmojiSelect(emoji);
+      setIsOpen(false);
+      setSearchTerm("");
+    };
+
+    // Handle keyboard navigation
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+        setSearchTerm("");
+      }
+    };
+
+    // Handle clicking outside to close dropdown
+    const dropdownRef = React.useRef(null);
+
+    React.useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(event.target)
+        ) {
+          setIsOpen(false);
+          setSearchTerm("");
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }, [isOpen]);
+
+    // Close dropdown when clicking outside
+    React.useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (isOpen && !event.target.closest(".emoji-selector")) {
+          setIsOpen(false);
+          setSearchTerm("");
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }, [isOpen]);
+
+    return (
+      <div className="space-y-4 emoji-selector">
+        <h3 className="block text-xl font-semibold text-slate-100">
+          Choose your emoji
+        </h3>
+
+        <div className="relative" ref={dropdownRef}>
+          {/* Trigger button */}
+          <button
+            onClick={toggleDropdown}
+            className="inline-flex items-center justify-between w-full px-4 py-3 bg-slate-800 border-2 border-slate-600 rounded-lg text-slate-100 text-sm hover:border-slate-400 focus:border-slate-400 focus:outline-none transition-all duration-200 cursor-pointer"
+            aria-expanded={isOpen}
+            aria-haspopup="listbox"
+            aria-label={`Selected emoji: ${selectedEmojiLabel}. Click to open emoji picker.`}
+          >
+            <span className="flex items-center gap-3">
+              <span className="text-2xl" aria-hidden="true">
+                {selectedEmoji}
+              </span>
+              <span>{selectedEmojiLabel}</span>
+            </span>
+            <ChevronDownIcon
+              className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {/* Dropdown content */}
+          {isOpen && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border-2 border-slate-600 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+              {/* Search input */}
+              <div className="p-3 border-b border-slate-600">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Search emojis... (e.g., 'smile', 'heart', 'fire')"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-500 rounded text-slate-100 text-sm placeholder-slate-400 focus:border-slate-400 focus:outline-none transition-colors"
+                  aria-label="Search emojis by name"
+                />
+              </div>
+
+              {/* Emoji list */}
+              <div className="max-h-80 overflow-y-auto p-2">
+                {loading ? (
+                  <div className="px-3 py-4 text-center text-slate-400 text-sm">
+                    Loading emojis...
+                  </div>
+                ) : error ? (
+                  <div className="px-3 py-4 text-center text-red-400 text-sm">
+                    {error}. Using fallback emojis.
+                  </div>
+                ) : filteredEmojis.length === 0 ? (
+                  <div className="px-3 py-4 text-center text-slate-400 text-sm">
+                    No emojis found for "{searchTerm}"
+                  </div>
+                ) : searchTerm.trim() ? (
+                  // Show flat list when searching
+                  <div className="space-y-1">
+                    {filteredEmojis.map(({ emoji, label }) => (
+                      <button
+                        key={emoji}
+                        onClick={() => handleEmojiClick(emoji)}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-100 rounded cursor-pointer hover:bg-slate-700 focus:bg-slate-700 focus:outline-none transition-colors text-left"
+                        aria-label={`Select ${label} emoji`}
+                      >
+                        <span className="text-lg" aria-hidden="true">
+                          {emoji}
+                        </span>
+                        <span>{label}</span>
+                        {emoji === selectedEmoji && (
+                          <span className="ml-auto text-blue-400 text-xs">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  // Show grouped list when not searching
+                  getEmojiGroups(filteredEmojis).map((group) => (
+                    <div key={group.label} className="mb-4">
+                      <div className="px-3 py-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                        {group.label}
+                      </div>
+                      <div className="space-y-1">
+                        {group.emojis.map(({ emoji, label }) => (
+                          <button
+                            key={emoji}
+                            onClick={() => handleEmojiClick(emoji)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-100 rounded cursor-pointer hover:bg-slate-700 focus:bg-slate-700 focus:outline-none transition-colors text-left"
+                            aria-label={`Select ${label} emoji`}
+                          >
+                            <span className="text-lg" aria-hidden="true">
+                              {emoji}
+                            </span>
+                            <span>{label}</span>
+                            {emoji === selectedEmoji && (
+                              <span className="ml-auto text-blue-400 text-xs">
+                                ✓
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Screen reader status for selected emoji */}
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          Selected emoji: {selectedEmojiLabel}
+        </div>
+      </div>
+    );
+  };
+
+  // Error Boundary Component for graceful degradation (Requirement 6.5)
+  class ErrorBoundary extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error) {
+      return { hasError: true, error };
+    }
+
+    componentDidCatch(error, errorInfo) {
+      console.error("EmojiTextDelimiter Error:", error, errorInfo);
+    }
+
+    render() {
+      if (this.state.hasError) {
+        return (
+          <div className="space-y-4 p-6 bg-red-900/50 border border-red-700 rounded-lg">
+            <h3 className="text-lg font-semibold text-red-200">
+              Something went wrong
+            </h3>
+            <p className="text-red-300 text-sm">
+              The emoji delimiter tool encountered an error. Please try
+              refreshing the page.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+            >
+              Refresh Page
+            </button>
+          </div>
+        );
+      }
+
+      return this.props.children;
+    }
+  }
+
+  const EmojiTextDelimiter = () => {
+    const [inputText, setInputText] = useState("");
+    const [selectedEmoji, setSelectedEmoji] = useState("👏");
+    const [delimitedText, setDelimitedText] = useState("");
+    const [copied, setCopied] = useState(false);
+    const [copyError, setCopyError] = useState(false);
+    const [processingError, setProcessingError] = useState(false);
+    const [announcements, setAnnouncements] = useState("");
+
+    // Update processed text when input or emoji changes with aggressive debouncing (Requirement 3.1, 3.2, 6.4)
+    React.useEffect(() => {
+      const timeoutId = setTimeout(() => {
+        try {
+          setProcessingError(false);
+
+          // Performance check: Warn user about very long text (Requirement 6.4)
+          if (inputText.length > 10000) {
+            console.warn(
+              "Processing large text input, performance may be affected"
+            );
+          }
+
+          const processed = processTextWithEmoji(inputText, selectedEmoji);
+          setDelimitedText(processed);
+
+          // Announce processing completion for screen readers (only if text exists)
+          if (processed && inputText.trim()) {
+            const wordCount = countWords(inputText);
+            setAnnouncements(
+              `Text processed. ${wordCount} words delimited with ${selectedEmoji} emoji.`
+            );
+          }
+        } catch (error) {
+          console.error("Text processing failed:", error);
+          setProcessingError(true);
+          setDelimitedText(""); // Clear output on error
+          setAnnouncements("Text processing failed. Please try again.");
+        }
+      }, 300); // Increased to 300ms for better typing performance
+
+      return () => clearTimeout(timeoutId);
+    }, [inputText, selectedEmoji]);
+
+    // Enhanced emoji selection handler with announcements
+    const handleEmojiSelect = useCallback((emoji) => {
+      setSelectedEmoji(emoji);
+      const emojiName =
+        [
+          { emoji: "👏", label: "clapping hands" },
+          { emoji: "🤏", label: "pinching hand" },
+          { emoji: "🤝", label: "handshake" },
+          { emoji: "👌", label: "OK hand" },
+          { emoji: "👋", label: "waving hand" },
+        ].find(({ emoji: e }) => e === emoji)?.label || emoji;
+
+      setAnnouncements(`Selected ${emojiName} emoji as delimiter.`);
+    }, []);
+
+    // Enhanced copy to clipboard functionality with comprehensive error handling and accessibility (Requirements 4.1, 4.2, 4.3, 4.4)
+    const handleCopy = useCallback(async () => {
+      // Don't attempt copy if no content (Requirement 4.5)
+      if (!delimitedText || !delimitedText.trim()) {
+        return;
+      }
+
+      // Reset previous states
+      setCopyError(false);
+      setCopied(false);
+
+      try {
+        // Primary method: Modern Clipboard API (Requirement 4.2)
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(delimitedText);
+          setCopied(true);
+          setAnnouncements("Text copied to clipboard successfully.");
+          // Reset success state after 2 seconds (Requirement 4.3)
+          setTimeout(() => setCopied(false), 2000);
+          return;
+        }
+
+        // Fallback method for older browsers or non-secure contexts (Requirement 4.4)
+        throw new Error("Clipboard API not available");
+      } catch (err) {
+        console.warn("Primary clipboard method failed:", err);
+
+        try {
+          // Fallback: Create temporary textarea for selection-based copy (Requirement 4.4)
+          const textArea = document.createElement("textarea");
+          textArea.value = delimitedText;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
+          document.body.appendChild(textArea);
+
+          textArea.focus();
+          textArea.select();
+
+          // Try execCommand as fallback
+          const successful = document.execCommand("copy");
+          document.body.removeChild(textArea);
+
+          if (successful) {
+            setCopied(true);
+            setAnnouncements("Text copied to clipboard using fallback method.");
+            setTimeout(() => setCopied(false), 2000);
+          } else {
+            throw new Error("execCommand copy failed");
+          }
+        } catch (fallbackErr) {
+          console.error("All copy methods failed:", fallbackErr);
+          // Show error state and message (Requirement 4.4)
+          setCopyError(true);
+          setAnnouncements(
+            "Copy failed. Please select the text manually and use Ctrl+C or Cmd+C to copy."
+          );
+          // Clear error after 5 seconds
+          setTimeout(() => setCopyError(false), 5000);
+        }
+      }
+    }, [delimitedText]);
+
+    return (
+      <Tooltip.Provider>
+        {/* Live region for screen reader announcements */}
+        <div
+          className="sr-only"
+          aria-live="polite"
+          aria-atomic="true"
+          role="status"
+        >
+          {announcements}
+        </div>
+
+        {/* Main content area with enhanced accessibility */}
+        <main
+          className="space-y-8"
+          role="main"
+          aria-label="Emoji text delimiter tool"
+        >
+          {/* Skip link for keyboard navigation */}
+          <a
+            href="#emoji-text-input"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded z-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Skip to text input
+          </a>
+
+          {/* Text Input Component with auto-focus */}
+          <section aria-labelledby="input-section-title">
+            <h2 id="input-section-title" className="sr-only">
+              Text Input
+            </h2>
+            <TextInput
+              value={inputText}
+              onChange={setInputText}
+              autoFocus={true}
+            />
+          </section>
+
+          {/* Emoji Selector Component */}
+          <section aria-labelledby="emoji-section-title">
+            <h2 id="emoji-section-title" className="sr-only">
+              Emoji Selection
+            </h2>
+            <EmojiSelector
+              selectedEmoji={selectedEmoji}
+              onEmojiSelect={handleEmojiSelect}
+            />
+          </section>
+
+          {/* Output Display Component */}
+          <section aria-labelledby="output-section-title">
+            <h2 id="output-section-title" className="sr-only">
+              Output
+            </h2>
+            <OutputDisplay
+              delimitedText={delimitedText}
+              inputText={inputText}
+              onCopy={handleCopy}
+              copied={copied}
+              copyError={copyError}
+              processingError={processingError}
+            />
+          </section>
+
+          {/* Keyboard shortcuts help (hidden by default, shown on focus) */}
+          <div
+            className="text-xs text-slate-500 text-center mt-8 focus-within:text-slate-400 transition-colors"
+            tabIndex={0}
+            role="region"
+            aria-label="Keyboard shortcuts"
+          >
+            <p>
+              <span className="font-medium">Keyboard shortcuts:</span>
+              <span className="ml-2">
+                Arrow keys to navigate emojis • Enter/Space to select • Tab to
+                move between sections
+              </span>
+            </p>
+          </div>
+        </main>
+      </Tooltip.Provider>
+    );
+  };
+
+  // Render the component with error boundary
+  const container = document.getElementById("react-root");
+  const root = createRoot(container);
+  root.render(
+    <ErrorBoundary>
+      <EmojiTextDelimiter />
+    </ErrorBoundary>
+  );
+</script>
