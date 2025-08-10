@@ -33,6 +33,10 @@ article a {
   @apply underline;
 }
 
+.tool-card-link {
+  text-decoration: none !important;
+}
+
 article p {
   @apply pb-4;
 }

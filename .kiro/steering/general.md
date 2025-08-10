@@ -2,13 +2,13 @@
 inclusion: always
 ---
 
-
 ## Research
 
 The whole internet exists! Use #[playwrite] browser_navigate to go and do research before you start.
 It's probably good to start at https://duckduckgo.com/ and then navigate from there.
 Use this to learn about topics, libraries and techniques.
 Feel free to search for any problems you're having.
+Use a sitemap to find your way around websites. You'll get to what you're looking for faster.
 
 ## Testing your work
 
@@ -21,3 +21,5 @@ Check if Jekyll is already running (use `ps aux | grep jekyll`). The ps command 
 ## Styling
 
 Never use custom styles. Always use Tailwind classes.
+Make the style fit in with the rest of the website.
+See index.css for some inspo.

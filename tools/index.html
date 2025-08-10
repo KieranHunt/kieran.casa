@@ -1,0 +1,34 @@
+---
+layout: default
+title: "Tools"
+permalink: /tools/
+---
+
+<div class="container max-w-screen-md px-4 mx-auto md:px-0">
+  <h2 class="text-5xl leading-none">Tools</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+    {% include tool-card.html 
+      name="everyit.zone" 
+      description="Add emoji delimiters between words in your text for social media emphasis with customizable emoji selection."
+      url="/everyit-zone/" 
+      color="blue" %}
+
+    {% include tool-card.html 
+        name="RFC6902" 
+        description="Generate RFC6902 JSON Patches by comparing before and after JSON documents with visual diff display."
+        url="/rfc6902/" 
+        color="purple" %}
+
+    {% include tool-card.html 
+       name="CSV to JSON" 
+       description="Convert CSV data to JSON format with automatic type detection and parsing. Supports drag & drop and provides live preview."
+       url="/csv-to-json/" 
+       color="orange" %}
+
+    {% include tool-card.html 
+       name="Recipe Search Engine" 
+       description="Search across curated recipe websites including NYT Cooking, Serious Eats, and more using DuckDuckGo."
+       url="/recipe-search-engine/" 
+       color="green" %}
+  </div>
+</div>

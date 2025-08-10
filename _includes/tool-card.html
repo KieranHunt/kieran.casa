@@ -1,0 +1,52 @@
+{% comment %}
+Tool Card Component
+Parameters:
+- name: Tool name/title
+- description: Brief description of the tool
+- url: Link to the tool
+- color: Color scheme (default: slate)
+{% endcomment %}
+
+{% assign color = include.color | default: "slate" %}
+
+{% if color == "blue" %}
+  <a href="{{ include.url }}" class="tool-card-link block bg-slate-800 border border-blue-500/20 rounded-lg p-6 hover:border-blue-400/30 transition-all duration-200 h-full flex flex-col shadow-lg group">
+{% elsif color == "green" %}
+  <a href="{{ include.url }}" class="tool-card-link block bg-slate-800 border border-green-400/20 rounded-lg p-6 hover:border-green-400/30 transition-all duration-200 h-full flex flex-col shadow-lg group">
+{% elsif color == "orange" %}
+  <a href="{{ include.url }}" class="tool-card-link block bg-slate-800 border border-yellow-400/20 rounded-lg p-6 hover:border-yellow-400/30 transition-all duration-200 h-full flex flex-col shadow-lg group">
+{% elsif color == "purple" %}
+  <a href="{{ include.url }}" class="tool-card-link block bg-slate-800 border border-purple-400/20 rounded-lg p-6 hover:border-purple-400/30 transition-all duration-200 h-full flex flex-col shadow-lg group">
+{% else %}
+  <a href="{{ include.url }}" class="tool-card-link block bg-slate-800 border border-slate-500/20 rounded-lg p-6 hover:border-slate-400/30 transition-all duration-200 h-full flex flex-col shadow-lg group">
+{% endif %}
+  <div class="mb-4">
+    <h3 class="text-xl font-semibold text-slate-100">{{ include.name }}</h3>
+  </div>
+  <div class="mb-6 flex-grow">
+    <p class="text-slate-300 text-sm leading-relaxed">{{ include.description }}</p>
+  </div>
+  <div class="mt-auto">
+    {% if color == "blue" %}
+      <span class="inline-flex items-center px-4 py-2 bg-blue-500/10 text-blue-300 rounded-lg font-medium group-hover:bg-blue-500/20 transition-colors duration-200">
+        Go →
+      </span>
+    {% elsif color == "green" %}
+      <span class="inline-flex items-center px-4 py-2 bg-green-400/10 text-green-300 rounded-lg font-medium group-hover:bg-green-400/20 transition-colors duration-200">
+        Go →
+      </span>
+    {% elsif color == "orange" %}
+      <span class="inline-flex items-center px-4 py-2 bg-yellow-400/10 text-yellow-300 rounded-lg font-medium group-hover:bg-yellow-400/20 transition-colors duration-200">
+        Go →
+      </span>
+    {% elsif color == "purple" %}
+      <span class="inline-flex items-center px-4 py-2 bg-purple-400/10 text-purple-300 rounded-lg font-medium group-hover:bg-purple-400/20 transition-colors duration-200">
+        Go →
+      </span>
+    {% else %}
+      <span class="inline-flex items-center px-4 py-2 bg-slate-500/10 text-slate-300 rounded-lg font-medium group-hover:bg-slate-500/20 transition-colors duration-200">
+        Go →
+      </span>
+    {% endif %}
+  </div>
+</a>
