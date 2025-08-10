@@ -4,155 +4,854 @@ title: "CSV to JSON"
 permalink: /csv-to-json/
 ---
 
+<!-- React container -->
+<div id="react-root"></div>
+
+<!-- Import map for dependencies -->
+<script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18",
+      "react-dom": "https://esm.sh/react-dom@18",
+      "react-dom/client": "https://esm.sh/react-dom@18/client",
+      "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime",
+      "csv-parse/sync": "https://esm.sh/csv-parse@5/sync",
+      "@radix-ui/react-tooltip": "https://esm.sh/@radix-ui/react-tooltip@1?external=react,react-dom",
+      "@radix-ui/react-icons": "https://esm.sh/@radix-ui/react-icons@1?external=react",
+      "@radix-ui/react-form": "https://esm.sh/@radix-ui/react-form@0?external=react,react-dom",
+      "@radix-ui/react-separator": "https://esm.sh/@radix-ui/react-separator@1?external=react,react-dom"
+    }
+  }
+</script>
+
+<!-- Babel for JSX compilation with ES modules support -->
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 <script>
-  async function handleOnDrop(event) {
-    event.preventDefault();
-
-    const items = [...event.dataTransfer.items]
-
-    if (items.length > 1) throw "too many items";
-
-    const item = items[0]
-
-    if (item.kind !== 'file') throw "item is not a file";
-
-    const file = item.getAsFile();
-
-    const text = await file.text();
-
-    document.querySelector('#csv').textContent = text
-  }
+  // Configure Babel to handle ES modules
+  Babel.registerPlugin(
+    "transform-modules-systemjs",
+    window.Babel.availablePlugins["transform-modules-systemjs"]
+  );
 </script>
 
-<script type="module">
-  "use strict";
-  import { parse } from 'https://esm.run/csv-parse/sync'
+<!-- JSX Component -->
+<script type="text/babel" data-type="module">
+  import React, {
+    useState,
+    useCallback,
+    useEffect,
+    useRef,
+    useMemo,
+  } from "react";
+  import { createRoot } from "react-dom/client";
+  import { parse } from "csv-parse/sync";
+  import * as Tooltip from "@radix-ui/react-tooltip";
+  import * as Form from "@radix-ui/react-form";
+  import * as Separator from "@radix-ui/react-separator";
+  import { CopyIcon, CheckIcon } from "@radix-ui/react-icons";
 
-  /**
-   * Expecting an object that looks as follows:
-   * 
-   * [
-   *  [
-   *    "id",
-   *    "asgArns",
-   *    "endTime",
-   *    "exceptionType",
-   *    "iamPrincipals",
-   *    "lastUpdateTime",
-   *    "operations",
-   *    "percentage",
-   *    "service",
-   *    "startTime",
-   *    "ttl"
-   *  ],
-   *  [
-   *    "EXPzQTJEzoFDnQBJ7c-action1",
-   *    "",
-   *    "2022-01-19T15:53:12.152035Z",
-   *    "INTERNAL",
-   *    "[\"arn:aws:iam::409404036789:role/Admin\"]",
-   *    "2022-01-19T15:51:32.622022Z",
-   *    "[\"DescribeVpcs\"]",
-   *    "50",
-   *    "ec2",
-   *    "2022-01-19T15:51:12.152035Z",
-   *    ""
-   *  ]
-   * ]
-   */ 
-  const keys = (document) => document[0];
+  // Error Display Component with consistent styling
+  const ErrorDisplay = ({
+    error,
+    type = "general",
+    onDismiss,
+    className = "",
+  }) => {
+    if (!error) return null;
 
-  const objectify = (document, keys) => {
+    // Define error type styling
+    const errorStyles = {
+      general: "bg-red-900/50 border-red-700 text-red-200",
+      warning: "bg-amber-900/50 border-amber-700 text-amber-200",
+      info: "bg-blue-900/50 border-blue-700 text-blue-200",
+    };
 
-    return document.map((row) => {
-      const newObject = {}
+    const iconStyles = {
+      general: "text-red-400 hover:text-red-200",
+      warning: "text-amber-400 hover:text-amber-200",
+      info: "text-blue-400 hover:text-blue-200",
+    };
 
-      row.forEach((item, index) => {
-        const newKey = keys[index];
+    return (
+      <div
+        className={`p-4 border rounded-lg flex items-start justify-between ${errorStyles[type]} ${className}`}
+        role="alert"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <div className="flex-1">
+          <div className="font-medium mb-1">
+            {type === "warning"
+              ? "Warning"
+              : type === "info"
+              ? "Information"
+              : "Error"}
+          </div>
+          <div className="text-sm opacity-90">{error}</div>
+        </div>
+        {onDismiss && (
+          <button
+            onClick={onDismiss}
+            className={`ml-4 p-1 rounded hover:bg-black/20 transition-colors ${iconStyles[type]}`}
+            aria-label="Dismiss error message"
+          >
+            ×
+          </button>
+        )}
+      </div>
+    );
+  };
 
-        /**
-         * Try to parse the object as JSON.
-         * Otherwise, take it as-is.
-         * 
-         * @example
-         * 
-         * These parse to the same thing:
-         * 
-         * ```csv
-         * key,value
-         * foo,"bar"
-         * ```
-         * 
-         * ```json
-         * [
-         *   {
-         *     "key": "foo",
-         *     "value": "bar"
-         *   },
-         *   {
-         *     "key": "foo",
-         *     "value": "bar"
-         *   }
-         * ]
-         * ```
-         * 
-         * @see {link https://kieran.casa/will-it-json/}
-         */ 
-        try {
-          const json = JSON.parse(item);
+  // JSON Output Component with copy functionality
+  const JsonOutput = ({ data, onCopy, copied, currentError }) => {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-slate-100">JSON Output</h3>
 
-          newObject[newKey] = json;
-        } catch (e) {
-          newObject[newKey] = item;
+        <div className="relative p-4 bg-slate-800 border-2 border-slate-600 rounded-lg min-h-[200px] transition-all duration-200">
+          {/* Copy button - only show when there's data */}
+          {data && (
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <button
+                  onClick={onCopy}
+                  className="absolute top-2 right-2 p-2 text-slate-400 hover:text-slate-200 hover:scale-110 transition-all duration-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50"
+                  aria-label={
+                    copied
+                      ? "JSON copied to clipboard"
+                      : "Copy JSON to clipboard"
+                  }
+                  disabled={!data}
+                >
+                  {copied ? (
+                    <CheckIcon className="w-5 h-5 text-green-400" />
+                  ) : (
+                    <CopyIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  className="bg-slate-900 text-slate-100 px-2 py-1 rounded text-sm border border-slate-600"
+                  sideOffset={5}
+                >
+                  {copied ? "Copied!" : "Copy to clipboard"}
+                  <Tooltip.Arrow className="fill-slate-900" />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          )}
+
+          {/* Content area */}
+          {currentError && currentError.type === "csvParsing" ? (
+            <div className="flex items-center justify-center h-full text-red-400">
+              <div className="text-center">
+                <p className="font-medium">Conversion Error</p>
+                <p className="text-sm mt-1 text-red-300">
+                  {currentError.message}
+                </p>
+              </div>
+            </div>
+          ) : data ? (
+            <pre
+              className="text-slate-100 font-mono text-sm whitespace-pre-wrap overflow-x-auto pr-12 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 rounded"
+              data-json-output
+              tabIndex="0"
+              role="textbox"
+              aria-label="JSON output - converted data"
+              aria-readonly="true"
+            >
+              {data}
+            </pre>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-slate-400 italic">
+              <div className="text-center">
+                <p>Converted JSON will appear here</p>
+                <p className="text-xs mt-1 text-slate-500">
+                  Enter CSV data above and click "Convert to JSON"
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Success feedback for screen readers */}
+        {copied && (
+          <div className="sr-only" aria-live="polite" aria-atomic="true">
+            JSON data successfully copied to clipboard
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // CSV Input Component with drag and drop functionality and enhanced accessibility
+  const CsvInput = React.forwardRef(
+    (
+      { value, onChange, onFileUpload, onError, onClearError, onConvert },
+      ref
+    ) => {
+      const [isDragOver, setIsDragOver] = useState(false);
+      const textareaRef = useRef(null);
+
+      // Expose focus method to parent component
+      React.useImperativeHandle(ref, () => ({
+        focus: () => textareaRef.current?.focus(),
+      }));
+
+      // Enhanced keyboard navigation
+      const handleKeyDown = useCallback(
+        (e) => {
+          // Ctrl/Cmd + Enter to trigger conversion
+          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
+            onConvert();
+            return;
+          }
+
+          // Escape to clear content
+          if (e.key === "Escape" && value.trim()) {
+            e.preventDefault();
+            onChange("");
+            return;
+          }
+        },
+        [onConvert, onChange, value]
+      );
+
+      const handleDragEnter = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(true);
+      }, []);
+
+      const handleDragLeave = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Only set isDragOver to false if we're leaving the main container
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          setIsDragOver(false);
         }
-      })
+      }, []);
 
-      return newObject;
-    })
-  }
+      const handleDragOver = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }, []);
 
-  const handleConvert = (e) => {
-    e.preventDefault();
+      const handleDrop = useCallback(
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(false);
+          onClearError("fileUpload");
 
-    const csvSource = document.querySelector('#csv').value;
+          const files = Array.from(e.dataTransfer.files);
 
+          // Validate number of files
+          if (files.length === 0) {
+            onError(
+              "fileUpload",
+              "No files were detected in the drop operation"
+            );
+            return;
+          }
 
-    const csv = parse(csvSource, {});
+          if (files.length > 1) {
+            onError(
+              "fileUpload",
+              `Multiple files detected (${files.length} files). Please drop only one file at a time.`
+            );
+            return;
+          }
 
-    const parsedObject = objectify(csv.slice(1, csv.length), keys(csv));
-    const prettyParsedObject = JSON.stringify(parsedObject, null, 2);
+          const file = files[0];
 
-    document.querySelector('#json').textContent = prettyParsedObject;
+          // Validate file type more comprehensively
+          const validExtensions = [".csv", ".txt"];
+          const validMimeTypes = [
+            "text/csv",
+            "text/plain",
+            "application/csv",
+            "text/comma-separated-values",
+          ];
 
-    
-    document.querySelector('#json').style.height = '1px';
-    document.querySelector('#json').style.height = (document.querySelector('#json').scrollHeight)+"px";
-    document.querySelector('#json').focus
-  }
+          const fileExtension = file.name
+            .toLowerCase()
+            .substring(file.name.lastIndexOf("."));
+          const isValidExtension = validExtensions.includes(fileExtension);
+          const isValidMimeType = validMimeTypes.includes(file.type);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(document.querySelector('#json').textContent)
-  }
+          if (!isValidExtension && !isValidMimeType) {
+            onError(
+              "fileUpload",
+              `Invalid file type: "${file.name}". Please drop a CSV or text file (.csv, .txt).`
+            );
+            return;
+          }
 
-  document.querySelector('#json-copy').addEventListener('click', handleCopy)
-  document.querySelector('#convert').addEventListener('click', handleConvert)
+          // Validate file size (50MB limit to match handleFileUpload)
+          const maxSize = 50 * 1024 * 1024; // 50MB
+          if (file.size > maxSize) {
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+            onError(
+              "fileUpload",
+              `File is too large (${fileSizeMB}MB). Please use files smaller than 50MB.`
+            );
+            return;
+          }
+
+          onFileUpload(file);
+        },
+        [onFileUpload, onError, onClearError]
+      );
+
+      return (
+        <Form.Field name="csvInput" className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <Form.Label className="text-xl font-semibold text-slate-100">
+              CSV Input
+            </Form.Label>
+          </div>
+
+          <div
+            className={`relative transition-all duration-200 ${
+              isDragOver ? "ring-2 ring-blue-400 ring-opacity-50" : ""
+            }`}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            role="region"
+            aria-label="CSV input area with drag and drop support"
+          >
+            <Form.Control asChild>
+              <textarea
+                ref={textareaRef}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full h-60 sm:h-80 p-4 bg-slate-800 border-2 border-slate-600 rounded-lg text-slate-100 font-mono text-sm resize-none focus:border-slate-400 focus:outline-none transition-colors duration-200"
+                placeholder="Paste CSV data here or drag and drop a CSV file..."
+                spellCheck={false}
+                aria-describedby="csv-input-help csv-keyboard-shortcuts"
+                aria-label="CSV data input"
+              />
+            </Form.Control>
+
+            {/* Drag overlay */}
+            {isDragOver && (
+              <div className="absolute inset-0 bg-blue-500/20 border-2 border-blue-400 border-dashed rounded-lg flex items-center justify-center pointer-events-none">
+                <div className="text-center">
+                  <p className="text-blue-200 font-medium text-lg">
+                    Drop CSV file here
+                  </p>
+                  <p className="text-blue-300 text-sm mt-1">
+                    Supported formats: .csv, .txt
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Help text for screen readers */}
+            <div id="csv-input-help" className="sr-only">
+              Paste CSV data or drag and drop a CSV file to convert to JSON.
+              Supported file types are CSV and text files.
+            </div>
+
+            {/* Keyboard shortcuts help */}
+            <div id="csv-keyboard-shortcuts" className="sr-only">
+              Keyboard shortcuts: Ctrl+Enter or Cmd+Enter to convert, Escape to
+              clear content.
+            </div>
+          </div>
+
+          {/* Visible keyboard shortcuts hint */}
+          <div className="text-xs text-slate-400 mt-2">
+            <span className="font-medium">Shortcuts:</span>
+            <span className="ml-2">Ctrl+Enter to convert</span>
+            <span className="ml-2 hidden sm:inline">•</span>
+            <span className="ml-2 hidden sm:inline">Esc to clear</span>
+          </div>
+        </Form.Field>
+      );
+    }
+  );
+
+  const CsvToJsonConverter = () => {
+    // State management using React hooks
+    const [csvData, setCsvData] = useState("");
+    const [jsonData, setJsonData] = useState("");
+    const [errors, setErrors] = useState({
+      general: "",
+      fileUpload: "",
+      csvParsing: "",
+      copy: "",
+    });
+    const [isConverting, setIsConverting] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    // Refs for focus management
+    const convertButtonRef = useRef(null);
+    const csvInputRef = useRef(null);
+
+    // Helper function to set specific error types
+    const setError = useCallback((type, message) => {
+      setErrors((prev) => ({
+        ...prev,
+        [type]: message,
+      }));
+    }, []);
+
+    // Helper function to clear specific error types
+    const clearError = useCallback((type) => {
+      setErrors((prev) => ({
+        ...prev,
+        [type]: "",
+      }));
+    }, []);
+
+    // Helper function to clear all errors
+    const clearAllErrors = useCallback(() => {
+      setErrors({
+        general: "",
+        fileUpload: "",
+        csvParsing: "",
+        copy: "",
+      });
+    }, []);
+
+    // Get the first non-empty error for display
+    const getCurrentError = useCallback(() => {
+      const errorTypes = ["general", "fileUpload", "csvParsing", "copy"];
+      for (const type of errorTypes) {
+        if (errors[type]) {
+          return { type, message: errors[type] };
+        }
+      }
+      return null;
+    }, [errors]);
+
+    // Auto-clear errors when user starts typing
+    React.useEffect(() => {
+      if (csvData.trim()) {
+        clearError("general");
+        clearError("csvParsing");
+      }
+    }, [csvData, clearError]);
+
+    // Auto-clear copy errors when JSON data changes
+    React.useEffect(() => {
+      clearError("copy");
+    }, [jsonData, clearError]);
+
+    // Handle file upload from drag and drop
+    const handleFileUpload = useCallback(
+      async (file) => {
+        try {
+          clearAllErrors();
+          setIsConverting(true);
+
+          // Additional file validation
+          if (file.size === 0) {
+            throw new Error("The selected file is empty");
+          }
+
+          if (file.size > 50 * 1024 * 1024) {
+            // 50MB limit
+            throw new Error(
+              "File is too large. Please use files smaller than 50MB"
+            );
+          }
+
+          // Read file
+          const text = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+              resolve(e.target.result);
+            };
+
+            reader.onerror = () => {
+              reject(new Error("Failed to read file"));
+            };
+
+            reader.readAsText(file);
+          });
+
+          if (!text.trim()) {
+            throw new Error("The file contains no data");
+          }
+
+          setCsvData(text);
+
+          // Announce to screen readers
+          const lines = text.split("\n").length;
+          const announcement =
+            "File " +
+            file.name +
+            " loaded successfully. " +
+            lines +
+            " lines of CSV data ready for conversion.";
+          announceToScreenReader(announcement);
+
+          // Focus the textarea after file load
+          setTimeout(() => {
+            csvInputRef.current?.focus();
+          }, 100);
+        } catch (err) {
+          let errorMsg;
+          if (err.name === "NotReadableError") {
+            errorMsg =
+              "Unable to read the file. The file may be corrupted or in use by another application.";
+          } else if (err.name === "SecurityError") {
+            errorMsg =
+              "Access to the file was denied due to security restrictions.";
+          } else {
+            errorMsg = err.message || "Failed to read the file";
+          }
+
+          setError("fileUpload", errorMsg);
+          announceToScreenReader("File upload failed: " + errorMsg);
+        } finally {
+          setIsConverting(false);
+        }
+      },
+      [clearAllErrors, setError, announceToScreenReader]
+    );
+
+    // Screen reader announcement helper with different priority levels
+    const announceToScreenReader = useCallback(
+      (message, priority = "polite") => {
+        const announcement = document.createElement("div");
+        announcement.setAttribute("aria-live", priority);
+        announcement.setAttribute("aria-atomic", "true");
+        announcement.className = "sr-only";
+        announcement.textContent = message;
+        document.body.appendChild(announcement);
+
+        // Remove after announcement
+        setTimeout(() => {
+          if (document.body.contains(announcement)) {
+            document.body.removeChild(announcement);
+          }
+        }, 1000);
+      },
+      []
+    );
+
+    // CSV conversion
+    const handleConvert = useCallback(() => {
+      try {
+        clearError("csvParsing");
+        clearError("general");
+        setIsConverting(true);
+
+        if (!csvData.trim()) {
+          throw new Error("Please provide CSV data to convert");
+        }
+
+        // Basic CSV format validation
+        const lines = csvData.trim().split("\n");
+        if (lines.length < 2) {
+          throw new Error(
+            "CSV must contain at least a header row and one data row"
+          );
+        }
+
+        // Parse CSV data using csv-parse library
+        const records = parse(csvData, {
+          columns: true, // Use first row as headers
+          skip_empty_lines: true,
+          trim: true,
+          cast: (value, context) => {
+            // Intelligent type casting for JSON values
+            if (value === "") return null;
+
+            // Try to parse as JSON first (for embedded objects/arrays)
+            if (
+              (value.startsWith("{") && value.endsWith("}")) ||
+              (value.startsWith("[") && value.endsWith("]"))
+            ) {
+              try {
+                return JSON.parse(value);
+              } catch {
+                return value; // Return as string if JSON parsing fails
+              }
+            }
+
+            // Parse numbers
+            if (/^-?\d+\.?\d*$/.test(value)) {
+              const num = parseFloat(value);
+              return Number.isInteger(num) ? parseInt(value, 10) : num;
+            }
+
+            // Parse booleans
+            if (value.toLowerCase() === "true") return true;
+            if (value.toLowerCase() === "false") return false;
+
+            // Return as string for everything else
+            return value;
+          },
+        });
+
+        if (records.length === 0) {
+          throw new Error(
+            "No data rows found in CSV. Please check that your CSV contains data after the header row."
+          );
+        }
+
+        // Convert to formatted JSON
+        const jsonOutput = JSON.stringify(records, null, 2);
+        setJsonData(jsonOutput);
+
+        // Announce success to screen readers
+        const message =
+          "CSV converted successfully. Generated " +
+          records.length +
+          " JSON objects.";
+        announceToScreenReader(message);
+
+        // Focus management after conversion
+        setTimeout(() => {
+          const jsonOutput = document.querySelector("[data-json-output]");
+          if (jsonOutput) {
+            jsonOutput.focus();
+          }
+        }, 100);
+      } catch (err) {
+        let errorMessage = "Failed to convert CSV to JSON";
+        let errorType = "csvParsing";
+
+        // Provide more specific error messages based on error type
+        if (err.message.includes("Invalid Record Length")) {
+          errorMessage =
+            "CSV format error: Inconsistent number of columns detected. Each row must have the same number of fields as the header row.";
+        } else if (err.message.includes("Invalid Opening Quote")) {
+          errorMessage =
+            "CSV format error: Unclosed quotes detected. Make sure all quoted fields are properly closed.";
+        } else if (err.message.includes("Invalid Closing Quote")) {
+          errorMessage =
+            "CSV format error: Invalid quote usage detected. Check for unescaped quotes within quoted fields.";
+        } else if (err.message.includes("Invalid Record")) {
+          errorMessage =
+            "CSV format error: Invalid record structure detected. Please check your CSV formatting.";
+        } else if (err.message.includes("provide CSV data")) {
+          errorMessage = err.message;
+          errorType = "general";
+        } else if (err.message.includes("header row")) {
+          errorMessage = err.message;
+        } else if (err.message.includes("No data rows")) {
+          errorMessage = err.message;
+        } else if (err.code === "CSV_INVALID_COLUMN_MAPPING") {
+          errorMessage =
+            "CSV format error: Column mapping failed. Please ensure your CSV has proper headers.";
+        } else if (err.message) {
+          errorMessage = "CSV parsing error: " + err.message;
+        }
+
+        setError(errorType, errorMessage);
+        setJsonData("");
+        announceToScreenReader("Conversion failed: " + errorMessage);
+      } finally {
+        setIsConverting(false);
+      }
+    }, [csvData, clearError, setError, announceToScreenReader]);
+
+    // Handle copy to clipboard with fallback methods
+    const handleCopy = useCallback(async () => {
+      if (!jsonData) {
+        setError("copy", "No JSON data available to copy");
+        announceToScreenReader("No JSON data available to copy");
+        return;
+      }
+
+      try {
+        clearError("copy");
+
+        // Primary method: Modern Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(jsonData);
+          setCopied(true);
+          announceToScreenReader("JSON data copied to clipboard successfully");
+          setTimeout(() => setCopied(false), 2000);
+          return;
+        }
+
+        // Fallback method: Create temporary textarea
+        const textArea = document.createElement("textarea");
+        textArea.value = jsonData;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        textArea.setAttribute("readonly", "");
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        textArea.setSelectionRange(0, 99999); // For mobile devices
+
+        const successful = document.execCommand("copy");
+        document.body.removeChild(textArea);
+
+        if (successful) {
+          setCopied(true);
+          announceToScreenReader("JSON data copied to clipboard successfully");
+          setTimeout(() => setCopied(false), 2000);
+        } else {
+          throw new Error("Browser copy command failed");
+        }
+      } catch (err) {
+        let errorMsg;
+
+        if (err.name === "NotAllowedError") {
+          errorMsg =
+            "Copy permission denied. Please allow clipboard access or copy manually.";
+        } else if (err.name === "SecurityError") {
+          errorMsg =
+            "Copy blocked by security policy. Please copy the text manually.";
+        } else if (err.message.includes("not supported")) {
+          errorMsg =
+            "Copy not supported in this browser. Please select the text manually and use Ctrl+C (or Cmd+C on Mac).";
+        } else {
+          errorMsg =
+            "Copy failed. Please select the text manually and use Ctrl+C (or Cmd+C on Mac).";
+        }
+
+        setError("copy", errorMsg);
+        announceToScreenReader(`Copy failed: ${errorMsg}`);
+
+        // Focus the JSON output for manual selection
+        setTimeout(() => {
+          const jsonOutput = document.querySelector("[data-json-output]");
+          if (jsonOutput) {
+            jsonOutput.focus();
+            // Try to select all text for easier manual copying
+            if (window.getSelection) {
+              const selection = window.getSelection();
+              const range = document.createRange();
+              range.selectNodeContents(jsonOutput);
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+          }
+        }, 100);
+      }
+    }, [jsonData, clearError, setError, announceToScreenReader]);
+
+    return (
+      <Tooltip.Provider>
+        {/* ARIA live region for screen reader announcements */}
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+          id="status-announcements"
+        >
+          {getCurrentError() && `Error: ${getCurrentError().message}`}
+          {copied && "JSON data copied to clipboard"}
+          {isConverting && "Converting CSV data to JSON"}
+        </div>
+
+        <div className="space-y-6 sm:space-y-8">
+          {/* CSV Input Section with drag and drop */}
+          <Form.Root
+            className="space-y-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleConvert();
+            }}
+          >
+            <CsvInput
+              ref={csvInputRef}
+              value={csvData}
+              onChange={setCsvData}
+              onFileUpload={handleFileUpload}
+              onError={setError}
+              onClearError={clearError}
+              onConvert={() => handleConvert()}
+            />
+
+            {/* Convert Button */}
+            <div className="flex justify-center">
+              <Form.Submit asChild>
+                <button
+                  ref={convertButtonRef}
+                  disabled={!csvData.trim() || isConverting}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 cursor-pointer"
+                  aria-describedby="convert-button-help"
+                >
+                  {isConverting ? (
+                    <>
+                      <span className="inline-block animate-spin mr-2">⟳</span>
+                      Converting...
+                    </>
+                  ) : (
+                    "Convert to JSON"
+                  )}
+                </button>
+              </Form.Submit>
+              <div id="convert-button-help" className="sr-only">
+                Convert the CSV data in the input area to JSON format. Keyboard
+                shortcut: Ctrl+Enter or Cmd+Enter
+              </div>
+            </div>
+          </Form.Root>
+
+          {/* Error Display - only show non-CSV parsing errors here */}
+          {getCurrentError() && getCurrentError().type !== "csvParsing" && (
+            <ErrorDisplay
+              error={getCurrentError().message}
+              type={getCurrentError().type === "copy" ? "warning" : "general"}
+              onDismiss={() => clearError(getCurrentError().type)}
+            />
+          )}
+
+          {/* JSON Output Section */}
+          <JsonOutput
+            data={jsonData}
+            onCopy={handleCopy}
+            copied={copied}
+            currentError={getCurrentError()}
+          />
+
+          {/* Info section matching RFC6902 style */}
+          <div className="mt-12">
+            <div className="flex justify-center mb-8">
+              <Separator.Root className="w-24 h-px bg-gradient-to-r from-transparent via-slate-400 to-transparent" />
+            </div>
+            <h4 className="text-lg font-medium text-slate-200 mb-3">
+              About CSV to JSON Conversion
+            </h4>
+            <div className="prose prose-invert prose-sm max-w-none">
+              <p className="text-slate-300">
+                This tool converts CSV (Comma-Separated Values) data into JSON
+                format with smart parsing of embedded JSON strings,
+                numbers, and boolean values.
+              </p>
+              <div className="mt-4 space-y-2">
+                <h5 className="text-slate-200 font-medium">Features</h5>
+                <ul className="text-slate-300 space-y-1">
+                  <li>
+                    Drag and drop CSV file support
+                  </li>
+                  <li>Intelligent JSON parsing for embedded objects</li>
+                  <li>
+                    Proper handling of quoted fields and special characters
+                  </li>
+                  <li>Copy to clipboard functionality with fallback methods</li>
+                  <li>Full keyboard navigation and accessibility support</li>
+                  <li>Responsive design for mobile and desktop</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Tooltip.Provider>
+    );
+  };
+
+  // Render the component
+  const container = document.getElementById("react-root");
+  const root = createRoot(container);
+  root.render(<CsvToJsonConverter />);
 </script>
-
-<label for="csv">CSV</label>
-
-<div id="csv-drop-area" ondrop="handleOnDrop(event)" ondragover="event.preventDefault()">
-<textarea id="csv" name="csv" rows="6" autocomplete="off" autofocus spellcheck="false" class="rounded w-full text-slate-900 resize-none font-mono focus:outline-none focus:ring-4 focus:ring-slate-50/50 bg-slate-50 selection:bg-slate-900 selection:text-slate-100"></textarea>
-</div>
-
-<div class="flex justify-center mt-8">
- <button type="button" id="convert" class="text-slate-900 bg-slate-50 rounded-lg px-2 py-1 font-medium ">Convert ↓</button>
-</div>
-
-<label for="json" class="mt-8">JSON</label>
-
-<div class="relative">
-  <svg id="json-copy" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 cursor-pointer absolute top-0 right-0 text-slate-900 mr-1 mt-1 group-hover:fill-current fill-transparent group">
-    <path class="group-hover:fill-transparent" stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 00-2.25 2.25v6" />
-  </svg>
-  <textarea id="json" name="csv" rows="4" readonly spellcheck class="rounded w-full text-slate-900 resize-none font-mono focus:outline-none focus:ring-4 focus:ring-slate-50/50 bg-slate-50 px-4 overflow-hidden selection:bg-slate-900 selection:text-slate-100"></textarea> 
-</div>
