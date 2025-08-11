@@ -25,15 +25,8 @@ permalink: /rfc6902/
   }
 </script>
 
-<!-- Babel for JSX compilation with ES modules support -->
-<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-<script>
-  // Configure Babel to handle ES modules
-  Babel.registerPlugin(
-    "transform-modules-systemjs",
-    window.Babel.availablePlugins["transform-modules-systemjs"]
-  );
-</script>
+<!-- esm.sh/tsx for JSX compilation -->
+<script type="module" src="https://esm.sh/tsx"></script>
 
 <!-- JSX Component -->
 <script type="text/babel" data-type="module">
