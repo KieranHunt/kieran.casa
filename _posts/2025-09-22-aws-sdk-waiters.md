@@ -148,7 +148,7 @@ val ssmWaiter = SsmWaiter.builder()
   .overrideConfiguration(
     WaiterOverrideConfiguration.builder()
       .maxAttempts(Int.MAX_VALUE)
-      .waitTimeout(60.seconds.toJavaDuration())
+      .waitTimeout(60.minutes.toJavaDuration())
       .backoffStrategyV2(BackoffStrategy.fixedDelay(5.seconds.toJavaDuration()))
       .build()
   )
