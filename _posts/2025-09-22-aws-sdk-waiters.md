@@ -5,6 +5,8 @@ permalink: /aws-sdk-waiters/
 date: 2025-09-22
 ---
 
+2025-10-05: I've written about using waiters in Javascript/Typescript. Read about it on [Typescript waiters are a bit weird](/aws-sdk-waiters-ts/).
+
 2025-09-27: Continuing on with waiters, I've written a new post about building your own waiters for an resource. Read more at [Write custom waiters](/custom-waiters/).
 
 Most distributed systems are eventually consistent. Callers instruct a resource to change from one state to another (like going from running to stopped) and must then wait some amount of time before that new state is achieved. 
