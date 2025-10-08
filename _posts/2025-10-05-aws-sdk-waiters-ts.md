@@ -39,7 +39,7 @@ const sendCommandOutput = await ssmClient.send(new SendCommandCommand({
   }
 }));
 
-await waitUntilCommandExecuted({ client: ssmClient, maxWaitTime: 30 }, {
+const waiterResult = await waitUntilCommandExecuted({ client: ssmClient, maxWaitTime: 30 }, {
   CommandId: sendCommandOutput.Command?.CommandId,
   InstanceId: instanceId
 });
