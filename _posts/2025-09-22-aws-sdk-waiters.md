@@ -5,6 +5,8 @@ permalink: /aws-sdk-waiters/
 date: 2025-09-22
 ---
 
+2025-10-15: I've added an example of when a waiter exceeds its configured `maxAttempts` value.
+
 2025-10-05: I've written about using waiters in Javascript/Typescript. Read about it on [Typescript waiters are a bit weird](/aws-sdk-waiters-ts/).
 
 2025-09-27: Continuing on with waiters, I've written a new post about building your own waiters for an resource. Read more at [Write custom waiters](/custom-waiters/).
@@ -134,6 +136,21 @@ assertThatThrownBy {
 }
   .isInstanceOf(SdkClientException::class.java)
   .hasMessageContaining("The waiter has exceeded the max wait time or the next retry will exceed the max wait time + PT5S")
+```
+
+And when a waiter exceeds the maximum number of attempts:
+
+```kotlin
+assertThatThrownBy {
+  ssmWaiter.waitUntilCommandExecuted(
+    GetCommandInvocationRequest.builder()
+      .commandId(sendCommandResponse.command().commandId())
+      .instanceId(sendCommandResponse.command().instanceIds().first())
+      .build()
+  )
+}
+  .isInstanceOf(SdkClientException::class.java)
+  .hasMessageContaining("The waiter has exceeded the max retry attempts: 1")
 ```
 
 ## Tuning timeouts
