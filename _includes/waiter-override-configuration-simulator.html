@@ -1,0 +1,396 @@
+<div class="bg-slate-800 border border-slate-500/20 rounded-lg p-4 pt-0 my-4">
+  <h3 class="text-lg font-semibold text-slate-100 mb-4 {% unless include.configurationVisible %}hidden{% endunless %}">Waiter Override Configuration</h3>
+  <div class="{% unless include.configurationVisible %}hidden{% endunless %}">
+    <label class="block text-sm text-slate-200 mb-1">Max Attempts</label>
+    <input type="number" id="maxAttempts-{{ include.id }}" value="{{ include.maxAttempts | default: 10 }}" max="10" min="1" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100">
+    <p class="text-xs text-slate-400 mt-1">Limited to 10 attempts for this visualization</p>
+  </div>
+
+  <div class="{% unless include.configurationVisible %}hidden{% endunless %}">
+    <label class="block text-sm text-slate-200 mb-1">Wait Timeout (seconds)</label>
+    <input type="number" id="waitTimeout-{{ include.id }}" value="{{ include.waitTimeout | default: 60 }}" step="1" min="1" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100">
+    <p class="text-xs text-slate-400 mt-1">Must be a positive integer</p>
+  </div>
+
+  <div class="{% unless include.configurationVisible %}hidden{% endunless %} pb-4">
+    <label class="block text-sm text-slate-200 mb-1">Backoff Strategy</label>
+    <select id="backoffStrategyV2-{{ include.id }}" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100">
+      <option value="retryImmediately" {% if include.backoffStrategy == "retryImmediately" %}selected{% endif %}>Retry Immediately</option>
+      <option value="fixedDelay" {% if include.backoffStrategy == "fixedDelay" or include.backoffStrategy == nil %}selected{% endif %}>Fixed Delay</option>
+      <option value="fixedDelayWithoutJitter" {% if include.backoffStrategy == "fixedDelayWithoutJitter" %}selected{% endif %}>Fixed Delay Without Jitter</option>
+      <option value="exponentialDelay" {% if include.backoffStrategy == "exponentialDelay" %}selected{% endif %}>Exponential Delay</option>
+      <option value="exponentialDelayWithoutJitter" {% if include.backoffStrategy == "exponentialDelayWithoutJitter" %}selected{% endif %}>Exponential Delay Without Jitter</option>
+      <option value="exponentialDelayHalfJitter" {% if include.backoffStrategy == "exponentialDelayHalfJitter" %}selected{% endif %}>Exponential Delay Half Jitter</option>
+    </select>
+  </div>
+
+  <div id="delayInput-{{ include.id }}" class="{% unless include.configurationVisible %}hidden{% endunless %}">
+    <label class="block text-sm text-slate-200 mb-1">Delay (seconds)</label>
+    <input type="number" id="delaySeconds-{{ include.id }}" value="{{ include.delaySeconds | default: 5 }}" step="1" min="1" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100">
+  </div>
+
+  <div id="exponentialDelayInputs-{{ include.id }}" class="{% unless include.configurationVisible %}hidden{% endunless %} space-y-3">
+    <div>
+      <label class="block text-sm text-slate-200 mb-1">Base Delay (seconds)</label>
+      <input type="number" id="baseDelaySeconds-{{ include.id }}" value="{{ include.baseDelaySeconds | default: 1 }}" step="1" min="1" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100">
+    </div>
+    <div>
+      <label class="block text-sm text-slate-200 mb-1">Max Delay (seconds)</label>
+      <input type="number" id="maxDelaySeconds-{{ include.id }}" value="{{ include.maxDelaySeconds | default: 60 }}" step="1" min="1" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100">
+    </div>
+  </div>
+
+  <div class="{% if include.outputVisible != false %}pt-4{% endif %}">
+    <pre id="output-{{ include.id }}" class="text-sm text-slate-300 bg-slate-900 p-3 rounded whitespace-pre-wrap break-all overflow-x-auto"></pre>
+  </div>
+
+  <div class="pt-4 {% unless include.simulatorConfigurationVisible %}hidden{% endunless %}">
+    <h3 class="text-lg font-semibold text-slate-100 mb-4">Simulation Configuration</h3>
+    <label class="block text-sm text-slate-200 mb-1">Resource State</label>
+    <select id="resourceState-{{ include.id }}" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100">
+      <option value="success" {% if include.resourceState == "success" or include.resourceState == nil %}selected{% endif %}>Success</option>
+      <option value="error" {% if include.resourceState == "error" %}selected{% endif %}>Error</option>
+    </select>
+    <p class="text-xs text-slate-400 mt-1">Once the resource changes state, which state it transitions to</p>
+  </div>
+
+  <div class="{% unless include.simulatorConfigurationVisible %}hidden{% endunless %}">
+    <label class="block text-sm text-slate-200 mb-1">State Delay (seconds)</label>
+    <input type="number" id="stateDelay-{{ include.id }}" value="{{ include.stateDelay | default: 10 }}" step="1" min="1" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-slate-100">
+    <p class="text-xs text-slate-400 mt-1">How long the resource takes to reach the selected state</p>
+  </div>
+
+  <div class="{% if include.timelineVisible != false %}pt-4{% endif %} {% unless include.timelineVisible != false %}hidden{% endunless %}">
+    <h3 class="text-lg font-semibold text-slate-100 mb-4 {% unless include.simulatorConfigurationVisible %}hidden{% endunless %}">Timeline</h3>
+    <div id="legend-{{ include.id }}" class="flex gap-4 mb-3 text-xs">
+      <div class="flex items-center gap-1">
+        <div class="w-3 h-3 bg-cyan-400"></div>
+        <span class="text-slate-300">API Call (100ms)</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <div class="w-3 h-3 bg-purple-400"></div>
+        <span class="text-slate-300">Waiting</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <div class="w-3 h-3 bg-green-400"></div>
+        <span class="text-slate-300">→ Success</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <div class="w-3 h-3 bg-red-400"></div>
+        <span class="text-slate-300">→ Error</span>
+      </div>
+    </div>
+    <div id="ganttChart-{{ include.id }}" class="bg-slate-900 rounded p-3 overflow-x-auto">
+      <!-- Gantt chart will be generated here -->
+    </div>
+    <div id="outcomeDisplay-{{ include.id }}" class="mt-3 p-3 rounded text-sm font-medium">
+      <!-- Outcome will be displayed here -->
+    </div>
+  </div>
+
+  <!-- Templates -->
+  <template id="ganttChartTemplate-{{ include.id }}">
+    <div class="grid grid-cols-21 gap-px p-2 rounded overflow-x-auto min-h-32" data-gantt-grid>
+    </div>
+  </template>
+
+  <template id="ganttItemTemplate-{{ include.id }}">
+    <div data-gantt-item></div>
+  </template>
+
+  <template id="outcomeTemplate-{{ include.id }}">
+    <div class="flex items-center gap-2">
+      <span class="px-1.5 py-0.5 rounded text-xs font-medium" data-outcome-badge></span>
+      <span class="text-slate-400 text-xs" data-outcome-text></span>
+    </div>
+  </template>
+</div>
+
+<script type="module">
+const inputs = ['maxAttempts', 'waitTimeout', 'backoffStrategyV2', 'delaySeconds', 'baseDelaySeconds', 'maxDelaySeconds', 'resourceState', 'stateDelay'].map(id => document.getElementById(id + '-{{ include.id }}'));
+const output = document.getElementById('output-{{ include.id }}');
+const delayInput = document.getElementById('delayInput-{{ include.id }}');
+const exponentialDelayInputs = document.getElementById('exponentialDelayInputs-{{ include.id }}');
+const backoffSelect = document.getElementById('backoffStrategyV2-{{ include.id }}');
+
+
+const toggleDelayInput = () => {
+  const strategy = backoffSelect.value;
+  const isFixedDelay = strategy === 'fixedDelay' || strategy === 'fixedDelayWithoutJitter';
+  const isExponentialWithParams = ['exponentialDelay', 'exponentialDelayWithoutJitter', 'exponentialDelayHalfJitter'].includes(strategy);
+  const isRetryImmediately = strategy === 'retryImmediately';
+  
+  // Check if configuration is visible by looking at the backoff select visibility
+  const isConfigurationVisible = !backoffSelect.closest('div').classList.contains('hidden');
+  
+  if (isConfigurationVisible) {
+    if (isFixedDelay) {
+      delayInput.classList.remove('hidden');
+      exponentialDelayInputs.classList.add('hidden');
+    } else if (isExponentialWithParams) {
+      delayInput.classList.add('hidden');
+      exponentialDelayInputs.classList.remove('hidden');
+    } else {
+      // Hide both delay inputs for retryImmediately and any other strategies
+      delayInput.classList.add('hidden');
+      exponentialDelayInputs.classList.add('hidden');
+    }
+  }
+};
+
+const calculateDelay = ({ attempt, backoffStrategy, delaySeconds, baseDelaySeconds, maxDelaySeconds }) => {
+  const baseMs = (parseFloat(baseDelaySeconds) || 1) * 1000; // ms
+  const maxMs = (parseFloat(maxDelaySeconds) || 60) * 1000; // ms
+  const fixedMs = (parseFloat(delaySeconds) || 5) * 1000; // ms
+  
+  switch (backoffStrategy) {
+    case 'retryImmediately':
+      return 0; // No delay - retry immediately
+    case 'fixedDelay': {
+      // Full Jitter: actualDelay = random(0, fixedDelay)
+      return Math.random() * fixedMs;
+    }
+    case 'fixedDelayWithoutJitter':
+      return fixedMs;
+    case 'exponentialDelay': {
+      // Full Jitter: actualDelay = random(0, exponentialDelay)
+      const exponentialDelayMs = Math.min(baseMs * Math.pow(2, attempt - 1), maxMs);
+      return Math.random() * exponentialDelayMs;
+    }
+    case 'exponentialDelayWithoutJitter':
+      return Math.min(baseMs * Math.pow(2, attempt - 1), maxMs);
+    case 'exponentialDelayHalfJitter': {
+      // Half Jitter: actualDelay = exponentialDelay/2 + random(0, exponentialDelay/2)
+      const exponentialDelayMs = Math.min(baseMs * Math.pow(2, attempt - 1), maxMs);
+      return (exponentialDelayMs / 2) + (Math.random() * (exponentialDelayMs / 2));
+    }
+    default:
+      throw `unknown backoffStrategy=${backoffStrategy}`
+  }
+};
+
+const generateGanttChart = ({ maxAttempts, waitTimeout, backoffStrategy, delaySeconds, baseDelaySeconds, maxDelaySeconds, resourceState, stateDelay }) => {
+  const ganttChart = document.getElementById('ganttChart-{{ include.id }}');
+  const outcomeDisplay = document.getElementById('outcomeDisplay-{{ include.id }}');
+  const ganttTemplate = document.getElementById('ganttChartTemplate-{{ include.id }}');
+  const ganttItemTemplate = document.getElementById('ganttItemTemplate-{{ include.id }}');
+  const outcomeTemplate = document.getElementById('outcomeTemplate-{{ include.id }}');
+  
+  const maxAttemptsNum = Math.min(parseInt(maxAttempts), 10); // Limit to 10 attempts
+  const waitTimeoutMs = parseInt(waitTimeout) * 1000; // ms
+  const stateDelayMs = parseFloat(stateDelay) * 1000; // ms
+  const responseTimeMs = 100; // 100ms response time
+  
+  const { timeline, totalTime } = Array.from({ length: maxAttemptsNum }, (_, i) => i + 1)
+    .reduce((acc, attempt) => {
+      if (acc.finished) return acc;
+      
+      const apiCall = {
+        type: 'api-call',
+        attempt: attempt,
+        start: acc.currentTime,
+        duration: responseTimeMs,
+        label: `API Call ${attempt}`
+      };
+      
+      const timeAfterApiCall = acc.currentTime + responseTimeMs;
+      const newTimeline = [...acc.timeline, apiCall];
+      
+      // Check if resource state is reached
+      if (timeAfterApiCall >= stateDelayMs) {
+        return {
+          timeline: newTimeline,
+          currentTime: timeAfterApiCall,
+          totalTime: timeAfterApiCall,
+          finished: true
+        };
+      }
+      
+      // If this is the last attempt or we've hit timeout, don't add delay
+      if (attempt >= maxAttemptsNum || timeAfterApiCall >= waitTimeoutMs) {
+        return {
+          timeline: newTimeline,
+          currentTime: timeAfterApiCall,
+          totalTime: timeAfterApiCall,
+          finished: true
+        };
+      }
+      
+      const waitDurationMs = calculateDelay({ attempt, backoffStrategy, delaySeconds, baseDelaySeconds, maxDelaySeconds });
+      
+      if (waitDurationMs === 0) {
+        // No wait period for retryImmediately - continue directly to next attempt
+        return {
+          timeline: newTimeline,
+          currentTime: timeAfterApiCall,
+          totalTime: 0,
+          finished: false
+        };
+      }
+      
+      const waitPeriod = {
+        type: 'wait',
+        attempt: attempt,
+        start: timeAfterApiCall,
+        duration: waitDurationMs,
+        label: `Wait ${(waitDurationMs / 1000).toFixed(1)}s`
+      };
+      
+      const timeAfterWait = timeAfterApiCall + waitDurationMs;
+      
+      // Check timeout after wait
+      if (timeAfterWait >= waitTimeoutMs) {
+        return {
+          timeline: [...newTimeline, waitPeriod],
+          currentTime: timeAfterWait,
+          totalTime: waitTimeoutMs,
+          finished: true
+        };
+      }
+      
+      return {
+        timeline: [...newTimeline, waitPeriod],
+        currentTime: timeAfterWait,
+        totalTime: 0,
+        finished: false
+      };
+    }, { timeline: [], currentTime: 0, totalTime: 0, finished: false });
+  
+  const finalTotalTimeMs = totalTime || timeline.reduce((max, item) => Math.max(max, item.start + item.duration), 0);
+
+  const stateTransitionMs = 100;
+
+  const stateDelayStart = stateDelayMs - stateTransitionMs;
+  
+  // Insert state marker into timeline at correct chronological position
+  if (stateDelayMs > 0 && stateDelayMs <= finalTotalTimeMs) {
+    const stateMarker = {
+      type: 'state-change',
+      start: stateDelayStart,
+      duration: stateTransitionMs,
+      label: `${resourceState === 'success' ? 'Success' : 'Error'} State`,
+      resourceState: resourceState
+    };
+    
+    const insertIndex = timeline.findIndex(item => item.start > stateDelayMs) ?? timeline.length;
+
+    timeline.splice(insertIndex, 0, stateMarker);
+  }
+  
+  // Generate CSS Grid-based timeline using template
+  const maxTimeMs = Math.max(finalTotalTimeMs, 1000); // At least 1 second
+  const timeSlots = Math.ceil(maxTimeMs / 100); // 100ms slots
+  
+  // Clone the gantt chart template
+  const ganttClone = ganttTemplate.content.cloneNode(true);
+  const ganttGrid = ganttClone.querySelector('[data-gantt-grid]');
+  
+  // Set grid rows
+  ganttGrid.style.gridTemplateRows = `repeat(${timeSlots}, 4px)`;
+  
+  // Create gantt items
+  timeline.forEach((item, colIndex) => {
+    const startRow = Math.floor(item.start / 100) + 1; // Convert ms to 100ms slots
+    const endRow = Math.floor((item.start + item.duration) / 100) + 1;
+    const rowSpan = Math.max(endRow - startRow, 1);
+    
+    let bgColorClass;
+    if (item.type === 'api-call') {
+      bgColorClass = 'bg-cyan-400';
+    } else if (item.type === 'wait') {
+      bgColorClass = 'bg-purple-400';
+    } else if (item.type === 'state-change') {
+      bgColorClass = item.resourceState === 'success' ? 'bg-green-400' : 'bg-red-400';
+    }
+    
+    const itemClone = ganttItemTemplate.content.cloneNode(true);
+    const itemElement = itemClone.querySelector('[data-gantt-item]');
+    itemElement.className = bgColorClass;
+    itemElement.style.gridColumn = colIndex + 1;
+    itemElement.style.gridRow = `${startRow} / span ${rowSpan}`;
+    itemElement.title = item.label;
+    
+    ganttGrid.appendChild(itemClone);
+  });
+  
+  // Replace gantt chart content
+  ganttChart.innerHTML = '';
+  ganttChart.appendChild(ganttClone);
+  
+  // Update outcome display using template
+  let outcome, outcomeColorClass, outcomeText;
+  const finalTotalTimeSeconds = finalTotalTimeMs / 1000; // Convert back to seconds for display
+  const waitTimeoutSeconds = waitTimeoutMs / 1000;
+  
+  if (finalTotalTimeMs >= stateDelayMs && resourceState === 'success') {
+    outcome = 'SUCCESS';
+    outcomeColorClass = 'text-green-400';
+    outcomeText = `Resource reached success state after ${finalTotalTimeSeconds.toFixed(1)}s`;
+  } else if (finalTotalTimeMs >= stateDelayMs && resourceState === 'error') {
+    outcome = 'SdkClientException';
+    outcomeColorClass = 'text-red-400';
+    outcomeText = `Resource reached error state after ${finalTotalTimeSeconds.toFixed(1)}s`;
+  } else if (finalTotalTimeMs >= waitTimeoutMs) {
+    outcome = 'SdkClientException';
+    outcomeColorClass = 'text-yellow-400';
+    outcomeText = `The waiter has exceeded the max wait time or the next retry will exceed the max wait time + PT${waitTimeoutSeconds}S`;
+  } else {
+    outcome = 'SdkClientException';
+    outcomeColorClass = 'text-red-400';
+    outcomeText = `The waiter has exceeded the max retry attempts: ${maxAttemptsNum}`;
+  }
+  
+  const outcomeClone = outcomeTemplate.content.cloneNode(true);
+  const outcomeBadge = outcomeClone.querySelector('[data-outcome-badge]');
+  const outcomeTextElement = outcomeClone.querySelector('[data-outcome-text]');
+  
+  outcomeBadge.className = `px-1.5 py-0.5 rounded text-xs font-medium ${outcomeColorClass}`;
+  outcomeBadge.textContent = outcome;
+  outcomeTextElement.textContent = outcomeText;
+  
+  outcomeDisplay.innerHTML = '';
+  outcomeDisplay.appendChild(outcomeClone);
+};
+
+const update = () => {
+  const [maxAttempts, waitTimeout, backoffStrategy, delaySeconds, baseDelaySeconds, maxDelaySeconds, resourceState, stateDelay] = inputs.map(i => i.value);
+  
+  let backoffLine;
+  if (backoffStrategy === 'fixedDelay') {
+    backoffLine = `.backoffStrategyV2(
+    BackoffStrategy.fixedDelay(
+      /* delay */ ${delaySeconds}.seconds.toJavaDuration()
+    )
+  )`;
+  } else if (backoffStrategy === 'fixedDelayWithoutJitter') {
+    backoffLine = `.backoffStrategyV2(
+    BackoffStrategy.fixedDelayWithoutJitter(
+      /* delay */ ${delaySeconds}.seconds.toJavaDuration()
+    )
+  )`;
+  } else if (['exponentialDelay', 'exponentialDelayWithoutJitter', 'exponentialDelayHalfJitter'].includes(backoffStrategy)) {
+    backoffLine = `.backoffStrategyV2(
+    BackoffStrategy.${backoffStrategy}(
+      /* baseDelay */ ${baseDelaySeconds}.seconds.toJavaDuration(),
+      /* maxDelay */ ${maxDelaySeconds}.seconds.toJavaDuration()
+    )
+  )`;
+  } else {
+    backoffLine = `.backoffStrategyV2(BackoffStrategy.${backoffStrategy}())`;
+  }
+  
+  output.textContent = `WaiterOverrideConfiguration.builder()
+  .maxAttempts(${maxAttempts})
+  .waitTimeout(${waitTimeout}.seconds.toJavaDuration())
+  ${backoffLine}
+  .build()`;
+  
+  generateGanttChart({ maxAttempts, waitTimeout, backoffStrategy, delaySeconds, baseDelaySeconds, maxDelaySeconds, resourceState, stateDelay });
+};
+
+inputs.forEach(input => input.addEventListener('input', update));
+inputs.forEach(input => input.addEventListener('change', update));
+backoffSelect.addEventListener('change', toggleDelayInput);
+toggleDelayInput();
+update();
+</script>
