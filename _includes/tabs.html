@@ -1,0 +1,97 @@
+{% comment %}
+Tab Group Component
+Usage:
+{% capture tab1_content %}
+Your markdown content here
+{% endcapture %}
+
+{% capture tab2_content %}
+More markdown content
+{% endcapture %}
+
+{% include tabs.html 
+  tab1="First Tab"
+  tab1_content=tab1_content
+  tab2="Second Tab"
+  tab2_content=tab2_content
+%}
+{% endcomment %}
+
+{% assign unique_id = include.id | default: "tabs" | append: "-" | append: include.tab1 | append: "-" | slugify %}
+
+<div class="mb-8 flex flex-wrap border-b border-white/10">
+  {% comment %} Tab 1 {% endcomment %}
+  {% if include.tab1 %}
+    <input type="radio" name="{{ unique_id }}" id="{{ unique_id }}-1" class="peer/tab1 hidden" checked />
+    <label for="{{ unique_id }}-1" class="order-1 px-4 py-2 cursor-pointer text-slate-300 border-b-2 border-transparent transition-colors duration-200 peer-checked/tab1:border-slate-400 peer-checked/tab1:text-slate-200">
+      {{ include.tab1 }}
+    </label>
+  {% endif %}
+  
+  {% comment %} Tab 2 {% endcomment %}
+  {% if include.tab2 %}
+    <input type="radio" name="{{ unique_id }}" id="{{ unique_id }}-2" class="peer/tab2 hidden" />
+    <label for="{{ unique_id }}-2" class="order-1 px-4 py-2 cursor-pointer text-slate-300 border-b-2 border-transparent transition-colors duration-200 peer-checked/tab2:border-slate-400 peer-checked/tab2:text-slate-200">
+      {{ include.tab2 }}
+    </label>
+  {% endif %}
+  
+  {% comment %} Tab 3 {% endcomment %}
+  {% if include.tab3 %}
+    <input type="radio" name="{{ unique_id }}" id="{{ unique_id }}-3" class="peer/tab3 hidden" />
+    <label for="{{ unique_id }}-3" class="order-1 px-4 py-2 cursor-pointer text-slate-300 border-b-2 border-transparent transition-colors duration-200 peer-checked/tab3:border-slate-400 peer-checked/tab3:text-slate-200">
+      {{ include.tab3 }}
+    </label>
+  {% endif %}
+  
+  {% comment %} Tab 4 {% endcomment %}
+  {% if include.tab4 %}
+    <input type="radio" name="{{ unique_id }}" id="{{ unique_id }}-4" class="peer/tab4 hidden" />
+    <label for="{{ unique_id }}-4" class="order-1 px-4 py-2 cursor-pointer text-slate-300 border-b-2 border-transparent transition-colors duration-200 peer-checked/tab4:border-slate-400 peer-checked/tab4:text-slate-200">
+      {{ include.tab4 }}
+    </label>
+  {% endif %}
+  
+  {% comment %} Tab 5 {% endcomment %}
+  {% if include.tab5 %}
+    <input type="radio" name="{{ unique_id }}" id="{{ unique_id }}-5" class="peer/tab5 hidden" />
+    <label for="{{ unique_id }}-5" class="order-1 px-4 py-2 cursor-pointer text-slate-300 border-b-2 border-transparent transition-colors duration-200 peer-checked/tab5:border-slate-400 peer-checked/tab5:text-slate-200">
+      {{ include.tab5 }}
+    </label>
+  {% endif %}
+
+  {% comment %} Tab 1 content {% endcomment %}
+  {% if include.tab1 %}
+    <div class="order-2 w-full mt-6 hidden peer-checked/tab1:block">
+      {{ include.tab1_content | markdownify }}
+    </div>
+  {% endif %}
+  
+  {% comment %} Tab 2 content {% endcomment %}
+  {% if include.tab2 %}
+    <div class="order-2 w-full mt-6 hidden peer-checked/tab2:block">
+      {{ include.tab2_content | markdownify }}
+    </div>
+  {% endif %}
+  
+  {% comment %} Tab 3 content {% endcomment %}
+  {% if include.tab3 %}
+    <div class="order-2 w-full mt-6 hidden peer-checked/tab3:block">
+      {{ include.tab3_content | markdownify }}
+    </div>
+  {% endif %}
+  
+  {% comment %} Tab 4 content {% endcomment %}
+  {% if include.tab4 %}
+    <div class="order-2 w-full mt-6 hidden peer-checked/tab4:block">
+      {{ include.tab4_content | markdownify }}
+    </div>
+  {% endif %}
+  
+  {% comment %} Tab 5 content {% endcomment %}
+  {% if include.tab5 %}
+    <div class="order-2 w-full mt-6 hidden peer-checked/tab5:block">
+      {{ include.tab5_content | markdownify }}
+    </div>
+  {% endif %}
+</div>
