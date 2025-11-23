@@ -10,6 +10,7 @@ More markdown content
 {% endcapture %}
 
 {% include tabs.html 
+  id="unique-identifier"
   tab1="First Tab"
   tab1_content=tab1_content
   tab2="Second Tab"
@@ -17,7 +18,7 @@ More markdown content
 %}
 {% endcomment %}
 
-{% assign unique_id = include.id | default: "tabs" | append: "-" | append: include.tab1 | append: "-" | slugify %}
+{% assign unique_id = include.id | slugify %}
 
 <div class="mb-8 flex flex-wrap border-b border-white/10">
   {% comment %} Tab 1 {% endcomment %}
