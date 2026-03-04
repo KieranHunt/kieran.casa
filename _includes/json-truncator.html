@@ -21,11 +21,7 @@
   const jsonParseResult = document.querySelector("#json-parse-result-{{ include.id }}");
   const jsonAsText = jsonElement.innerText;
   sizeInput.addEventListener("input", (event) => {
-    console.log({event})
-    console.log(event.target.value);
-    console.log({jsonAsText});
     const newText = jsonAsText.substring(0, event.target.value)
-    console.log({newText});
     jsonElement.innerText = newText
 
     try {

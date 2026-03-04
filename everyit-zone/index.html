@@ -11,10 +11,10 @@ permalink: /everyit-zone/
 <script type="importmap">
   {
     "imports": {
-      "react": "https://esm.sh/react@18?dev",
-      "react-dom": "https://esm.sh/react-dom@18?dev",
-      "react-dom/client": "https://esm.sh/react-dom@18/client?dev",
-      "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime?dev",
+      "react": "https://esm.sh/react@18",
+      "react-dom": "https://esm.sh/react-dom@18",
+      "react-dom/client": "https://esm.sh/react-dom@18/client",
+      "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime",
       "@radix-ui/react-tooltip": "https://esm.sh/@radix-ui/react-tooltip@1?external=react,react-dom",
       "@radix-ui/react-icons": "https://esm.sh/@radix-ui/react-icons@1?external=react",
       "@radix-ui/react-separator": "https://esm.sh/@radix-ui/react-separator@1?external=react,react-dom",
@@ -25,15 +25,8 @@ permalink: /everyit-zone/
   }
 </script>
 
-<!-- Babel for JSX compilation with ES modules support -->
-<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-<script>
-  // Configure Babel to handle ES modules
-  Babel.registerPlugin(
-    "transform-modules-systemjs",
-    window.Babel.availablePlugins["transform-modules-systemjs"]
-  );
-</script>
+<!-- esm.sh/tsx for JSX compilation -->
+<script type="module" src="https://esm.sh/tsx"></script>
 
 <!-- Custom CSS for enhanced animations and accessibility -->
 <style>
@@ -687,20 +680,6 @@ permalink: /everyit-zone/
           dropdownRef.current &&
           !dropdownRef.current.contains(event.target)
         ) {
-          setIsOpen(false);
-          setSearchTerm("");
-        }
-      };
-
-      document.addEventListener("mousedown", handleClickOutside);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
-    }, [isOpen]);
-
-    // Close dropdown when clicking outside
-    React.useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (isOpen && !event.target.closest(".emoji-selector")) {
           setIsOpen(false);
           setSearchTerm("");
         }

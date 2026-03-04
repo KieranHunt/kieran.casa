@@ -24,15 +24,8 @@ permalink: /csv-to-json/
   }
 </script>
 
-<!-- Babel for JSX compilation with ES modules support -->
-<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-<script>
-  // Configure Babel to handle ES modules
-  Babel.registerPlugin(
-    "transform-modules-systemjs",
-    window.Babel.availablePlugins["transform-modules-systemjs"]
-  );
-</script>
+<!-- esm.sh/tsx for JSX compilation -->
+<script type="module" src="https://esm.sh/tsx"></script>
 
 <!-- JSX Component -->
 <script type="text/babel" data-type="module">
@@ -445,6 +438,26 @@ permalink: /csv-to-json/
       clearError("copy");
     }, [jsonData, clearError]);
 
+    // Screen reader announcement helper with different priority levels
+    const announceToScreenReader = useCallback(
+      (message, priority = "polite") => {
+        const announcement = document.createElement("div");
+        announcement.setAttribute("aria-live", priority);
+        announcement.setAttribute("aria-atomic", "true");
+        announcement.className = "sr-only";
+        announcement.textContent = message;
+        document.body.appendChild(announcement);
+
+        // Remove after announcement
+        setTimeout(() => {
+          if (document.body.contains(announcement)) {
+            document.body.removeChild(announcement);
+          }
+        }, 1000);
+      },
+      []
+    );
+
     // Handle file upload from drag and drop
     const handleFileUpload = useCallback(
       async (file) => {
@@ -518,26 +531,6 @@ permalink: /csv-to-json/
         }
       },
       [clearAllErrors, setError, announceToScreenReader]
-    );
-
-    // Screen reader announcement helper with different priority levels
-    const announceToScreenReader = useCallback(
-      (message, priority = "polite") => {
-        const announcement = document.createElement("div");
-        announcement.setAttribute("aria-live", priority);
-        announcement.setAttribute("aria-atomic", "true");
-        announcement.className = "sr-only";
-        announcement.textContent = message;
-        document.body.appendChild(announcement);
-
-        // Remove after announcement
-        setTimeout(() => {
-          if (document.body.contains(announcement)) {
-            document.body.removeChild(announcement);
-          }
-        }, 1000);
-      },
-      []
     );
 
     // CSV conversion
