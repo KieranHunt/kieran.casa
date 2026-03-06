@@ -7,6 +7,12 @@ permalink: /tools/
 <div class="container max-w-screen-md px-4 mx-auto md:px-0">
   <h2 class="text-5xl leading-none">Tools</h2>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+    {% include tool-card.html
+       name="Time Turner"
+       description="A utility to convert to and from relative timestamps."
+       url="/time-turner/"
+       color="pink" %}
+
     {% include tool-card.html 
       name="everyit.zone" 
       description="Add emoji delimiters between words in your text for social media emphasis with customizable emoji selection."

@@ -1,0 +1,309 @@
+---
+layout: page
+title: "Time Turner"
+permalink: /time-turner/
+---
+
+<div id="react-root"></div>
+
+<script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18",
+      "react-dom": "https://esm.sh/react-dom@18",
+      "react-dom/client": "https://esm.sh/react-dom@18/client",
+      "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime",
+      "luxon": "https://esm.sh/luxon@3",
+      "@radix-ui/react-tooltip": "https://esm.sh/@radix-ui/react-tooltip@1?external=react,react-dom",
+      "@radix-ui/react-separator": "https://esm.sh/@radix-ui/react-separator@1?external=react,react-dom",
+      "@radix-ui/react-label": "https://esm.sh/@radix-ui/react-label@2?external=react,react-dom",
+      "@radix-ui/react-icons": "https://esm.sh/@radix-ui/react-icons@1?external=react"
+    }
+  }
+</script>
+
+<script type="module" src="https://esm.sh/tsx"></script>
+
+<script type="text/babel" data-type="module">
+  import React, { useState, useCallback, useEffect } from "react";
+  import { createRoot } from "react-dom/client";
+  import { DateTime } from "luxon";
+  import * as Tooltip from "@radix-ui/react-tooltip";
+  import * as Separator from "@radix-ui/react-separator";
+  import * as Label from "@radix-ui/react-label";
+  import { CopyIcon, CheckIcon } from "@radix-ui/react-icons";
+
+  // ─── helpers ──────────────────────────────────────────────────────────────────
+
+  function detectAndParse(raw) {
+    const s = raw.trim();
+    if (!s) return { dt: null, format: null };
+
+    // Unix milliseconds: 13-digit integer
+    if (/^\d{13}$/.test(s)) {
+      const dt = DateTime.fromMillis(parseInt(s, 10), { zone: "utc" });
+      return dt.isValid ? { dt, format: "Unix ms" } : { dt: null, format: null };
+    }
+
+    // Unix seconds: 9 or 10-digit integer
+    if (/^\d{9,10}$/.test(s)) {
+      const dt = DateTime.fromSeconds(parseInt(s, 10), { zone: "utc" });
+      return dt.isValid ? { dt, format: "Unix s" } : { dt: null, format: null };
+    }
+
+    // ISO 8601 datetime
+    const iso = DateTime.fromISO(s, { setZone: true });
+    if (iso.isValid) return { dt: iso, format: "ISO 8601" };
+
+    return { dt: null, format: null };
+  }
+
+  function buildDuration(dtA, dtB) {
+    const units = ["years", "months", "days", "hours", "minutes", "seconds"];
+    const diff = dtA < dtB
+      ? dtB.diff(dtA, units)
+      : dtA.diff(dtB, units);
+    return diff.shiftTo(...units).removeZeros();
+  }
+
+  function humanParts(dur) {
+    const obj = dur.toObject();
+    const labels = [
+      ["year", obj.years],
+      ["month", obj.months],
+      ["day", obj.days],
+      ["hour", obj.hours],
+      ["minute", obj.minutes],
+      ["second", obj.seconds],
+    ];
+    const parts = labels
+      .filter(([, v]) => v && v !== 0)
+      .map(([unit, v]) => {
+        const n = Math.abs(Math.round(v * 10) / 10);
+        return `${n} ${unit}${n !== 1 ? "s" : ""}`;
+      });
+    return parts.length ? parts.join(", ") : "0 seconds";
+  }
+
+  // ─── CopyButton ───────────────────────────────────────────────────────────────
+
+  function CopyButton({ text }) {
+    const [copied, setCopied] = useState(false);
+    const handle = useCallback(() => {
+      navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1000);
+    }, [text]);
+
+    return (
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+          <button
+            onClick={handle}
+            className="p-1 text-slate-400 hover:text-slate-200 transition-colors shrink-0"
+          >
+            {copied
+              ? <CheckIcon className="w-4 h-4 text-green-400" />
+              : <CopyIcon className="w-4 h-4" />}
+          </button>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content
+            className="bg-slate-900 text-slate-100 px-2 py-1 rounded text-xs border border-slate-600"
+            sideOffset={4}
+          >
+            {copied ? "Copied!" : "Copy"}
+            <Tooltip.Arrow className="fill-slate-900" />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    );
+  }
+
+  // ─── FormatBadge ──────────────────────────────────────────────────────────────
+
+  function FormatBadge({ format }) {
+    if (!format) return null;
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-300 border border-slate-600">
+        {format}
+      </span>
+    );
+  }
+
+  // ─── TimestampInput ───────────────────────────────────────────────────────────
+
+  function TimestampInput({ label, value, onChange, placeholder, id }) {
+    const { format } = detectAndParse(value);
+    const isError = value.trim() !== "" && !format;
+
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <Label.Root
+            htmlFor={id}
+            className="text-sm font-medium text-slate-300"
+          >
+            {label}
+          </Label.Root>
+          <FormatBadge format={format} />
+        </div>
+        <input
+          id={id}
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          spellCheck={false}
+          className={`w-full px-3 py-2 bg-slate-800 border-2 rounded-lg text-slate-100 font-mono text-sm focus:outline-none transition-colors placeholder:text-slate-600 ${
+            isError
+              ? "border-red-500/70 focus:border-red-400"
+              : "border-slate-600 focus:border-slate-400"
+          }`}
+        />
+        {isError && (
+          <p className="text-xs text-red-400">
+            Not a recognised format. Try an ISO 8601 datetime or a Unix timestamp.
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // ─── ResultCard ───────────────────────────────────────────────────────────────
+
+  function ResultCard({ iso, human }) {
+    return (
+      <div className="p-4 bg-slate-800 border-2 border-slate-600 rounded-lg space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <code className="text-slate-100 font-mono text-lg break-all">{iso}</code>
+          <CopyButton text={iso} />
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-slate-400 text-sm">{human}</p>
+          <CopyButton text={human} />
+        </div>
+      </div>
+    );
+  }
+
+  // ─── EmptyState ───────────────────────────────────────────────────────────────
+
+  function EmptyState({ children }) {
+    return (
+      <div className="px-4 py-8 bg-slate-800/50 border-2 border-dashed border-slate-700 rounded-lg text-center text-slate-500 text-sm">
+        {children}
+      </div>
+    );
+  }
+
+  // ─── Main component ───────────────────────────────────────────────────────────
+
+  function TimeTurner() {
+    const [input, setInput] = useState("");
+    const [now, setNow] = useState(() => DateTime.now());
+
+    // Tick every second so the "from now" result stays fresh
+    useEffect(() => {
+      const id = setInterval(() => setNow(DateTime.now()), 1000);
+      return () => clearInterval(id);
+    }, []);
+
+    const { dt } = detectAndParse(input);
+    const result = dt
+      ? (() => {
+          const dur = buildDuration(now, dt);
+          return {
+            iso: dur.toISO(),
+            human: humanParts(dur),
+          };
+        })()
+      : null;
+
+    const placeholder = "e.g. 2026-03-01T10:00:00Z  ·  1741212000  ·  1741212000000";
+
+    return (
+      <Tooltip.Provider>
+        <div className="space-y-12">
+
+          {/* ── Timestamp → duration from now ── */}
+          <section className="space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-100">Timestamp to duration from now</h2>
+              <p className="text-slate-400 text-sm mt-1">
+                Enter a timestamp and get the ISO 8601 duration between it and right now.
+              </p>
+            </div>
+
+            <TimestampInput
+              id="single-input"
+              label="Timestamp"
+              value={input}
+              onChange={setInput}
+              placeholder={placeholder}
+            />
+
+            {result
+              ? <ResultCard {...result} />
+              : <EmptyState>Enter a timestamp above to see the duration</EmptyState>
+            }
+          </section>
+
+          {/* ── About section ── */}
+          <div className="mt-12">
+            <div className="flex justify-center mb-8">
+              <Separator.Root className="w-24 h-px bg-gradient-to-r from-transparent via-slate-400 to-transparent" />
+            </div>
+            <h4 className="text-lg font-medium text-slate-200 mb-3">About Time Turner</h4>
+            <div className="text-slate-300 space-y-4 text-sm">
+              <p>
+                Time Turner converts between absolute timestamps and relative durations
+                expressed as{" "}
+                <a
+                  href="https://en.wikipedia.org/wiki/ISO_8601#Durations"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 underline"
+                >
+                  ISO 8601 durations
+                </a>.
+                Useful when a system accepts a duration (like{" "}
+                <code className="font-mono text-xs ring-1 ring-white/10 bg-slate-800 rounded px-1">PT2H30M</code>
+                ) but you only have absolute timestamps to work from.
+              </p>
+              <div>
+                <p className="font-medium text-slate-200 mb-2">Supported input formats</p>
+                <dl className="space-y-2">
+                  <div className="flex gap-3 items-baseline">
+                    <dt className="shrink-0"><code className="font-mono text-xs ring-1 ring-white/10 bg-slate-800 rounded px-1 py-0.5">ISO 8601</code></dt>
+                    <dd className="text-slate-400">e.g. <code className="font-mono text-xs">2026-03-06T10:00:00Z</code> or <code className="font-mono text-xs">2026-03-06T10:00:00+05:30</code></dd>
+                  </div>
+                  <div className="flex gap-3 items-baseline">
+                    <dt className="shrink-0"><code className="font-mono text-xs ring-1 ring-white/10 bg-slate-800 rounded px-1 py-0.5">Unix s</code></dt>
+                    <dd className="text-slate-400">Seconds since epoch — 9–10 digits, e.g. <code className="font-mono text-xs">1741212000</code></dd>
+                  </div>
+                  <div className="flex gap-3 items-baseline">
+                    <dt className="shrink-0"><code className="font-mono text-xs ring-1 ring-white/10 bg-slate-800 rounded px-1 py-0.5">Unix ms</code></dt>
+                    <dd className="text-slate-400">Milliseconds since epoch — 13 digits, e.g. <code className="font-mono text-xs">1741212000000</code></dd>
+                  </div>
+                </dl>
+              </div>
+              <div>
+                <p className="font-medium text-slate-200 mb-2">Duration format</p>
+                <p className="text-slate-400">
+                  Output follows <code className="font-mono text-xs ring-1 ring-white/10 bg-slate-800 rounded px-1">P[n]Y[n]M[n]DT[n]H[n]M[n]S</code>.
+                  For example, <code className="font-mono text-xs">P1Y2M3DT4H5M6S</code> = 1 year, 2 months, 3 days, 4 hours, 5 minutes, 6 seconds.
+                  Zero-value components are omitted.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </Tooltip.Provider>
+    );
+  }
+
+  const root = createRoot(document.getElementById("react-root"));
+  root.render(<TimeTurner />);
+</script>
