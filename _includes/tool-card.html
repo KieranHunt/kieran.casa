@@ -17,8 +17,6 @@ Parameters:
   <a href="{{ include.url }}" class="tool-card-link block bg-slate-800 border border-yellow-400/20 rounded-lg p-6 hover:border-yellow-400/30 transition-all duration-200 h-full flex flex-col shadow-lg group">
 {% elsif color == "purple" %}
   <a href="{{ include.url }}" class="tool-card-link block bg-slate-800 border border-purple-400/20 rounded-lg p-6 hover:border-purple-400/30 transition-all duration-200 h-full flex flex-col shadow-lg group">
-{% elsif color == "pink" %}
-  <a href="{{ include.url }}" class="tool-card-link block bg-slate-800 border border-pink-400/20 rounded-lg p-6 hover:border-pink-400/30 transition-all duration-200 h-full flex flex-col shadow-lg group">
 {% else %}
   <a href="{{ include.url }}" class="tool-card-link block bg-slate-800 border border-slate-500/20 rounded-lg p-6 hover:border-slate-400/30 transition-all duration-200 h-full flex flex-col shadow-lg group">
 {% endif %}
@@ -43,10 +41,6 @@ Parameters:
       </span>
     {% elsif color == "purple" %}
       <span class="inline-flex items-center px-4 py-2 bg-purple-400/10 text-purple-300 rounded-lg font-medium group-hover:bg-purple-400/20 transition-colors duration-200">
-        Go →
-      </span>
-    {% elsif color == "pink" %}
-      <span class="inline-flex items-center px-4 py-2 bg-pink-400/10 text-pink-300 rounded-lg font-medium group-hover:bg-pink-400/20 transition-colors duration-200">
         Go →
       </span>
     {% else %}
