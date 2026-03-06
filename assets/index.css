@@ -12,7 +12,8 @@
   content-visibility: auto;
 }
 
-.post h2 {
+.post h2,
+.page h2 {
   @apply text-2xl;
   @apply font-bold;
   @apply mt-8;
