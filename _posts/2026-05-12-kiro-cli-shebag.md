@@ -34,7 +34,7 @@ It still supports all of the parameters that OpenCode does:
 And iterating:
 
 ```bash
-./pelican.sh --ccontinue "now make more metal 🤘"
+./pelican.sh --continue "now make more metal 🤘"
 ```
 
 ```
