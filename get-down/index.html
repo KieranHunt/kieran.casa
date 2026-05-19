@@ -19,8 +19,10 @@ permalink: /get-down/
       href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🪩</text></svg>'
     />
 
-    <!-- Cooper Black — display font for the title (real font; falls back to local install) -->
-    <link href="https://fonts.cdnfonts.com/css/cooper-black" rel="stylesheet" />
+    <!-- Monoton — striped retro disco display font for the title -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Monoton&display=swap" rel="stylesheet" />
 
     <!-- Apple-style emoji PNGs via emojicdn.elk.sh — preload so the entrance never flashes a gap -->
     <link rel="preload" as="image" type="image/png" href="https://emojicdn.elk.sh/🪩" />
@@ -38,7 +40,7 @@ permalink: /get-down/
 
     <style>
       .font-display {
-        font-family: "Cooper Black", "Cooper Std", Georgia, serif;
+        font-family: "Monoton", "Cooper Black", "Cooper Std", Georgia, serif;
       }
       /* highlight.js applies its own background; strip it so the slate-950 card shows through */
       pre code.hljs {
@@ -413,9 +415,10 @@ permalink: /get-down/
       const preprocessHtml = (html) => String(preprocessor.processSync(html))
       // === end preprocessing ===
 
-      // Three-layer red glow text-shadow, mirroring cdk-search's AsciiTitle (indigo → red).
+      // Three-layer purple glow text-shadow for the disco-poster title:
+      // light violet text with progressively darker, larger violet halos behind.
       const TITLE_GLOW =
-        "[text-shadow:0_0_10px_color-mix(in_oklch,var(--color-red-400)_60%,transparent),0_0_30px_color-mix(in_oklch,var(--color-red-400)_40%,transparent),0_0_60px_color-mix(in_oklch,var(--color-red-400)_20%,transparent)]"
+        "[text-shadow:0_0_10px_color-mix(in_oklch,var(--color-violet-500)_70%,transparent),0_0_30px_color-mix(in_oklch,var(--color-violet-600)_55%,transparent),0_0_60px_color-mix(in_oklch,var(--color-violet-700)_45%,transparent)]"
 
       // === Floating emoji background ===
       // Apple-style emoji PNGs via emojicdn.elk.sh (URL-encoded codepoints).
@@ -588,12 +591,62 @@ permalink: /get-down/
       }
       // === end floating emoji background ===
 
+      // Four-point sparkle glint, like the ones flanking "DISCO NIGHT" on the
+      // reference poster. Two overlapping diamonds (orthogonal beams + shorter
+      // 45°-rotated accents) inside a 100×100 viewBox. Color comes from `fill`,
+      // halo from a stacked drop-shadow filter.
+      function Sparkle({ className, glowColor = "rgba(255,255,255,0.65)" }) {
+        return (
+          <svg
+            className={className}
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+            fill="white"
+            style={{
+              filter: `drop-shadow(0 0 4px ${glowColor}) drop-shadow(0 0 14px ${glowColor})`,
+            }}
+          >
+            {/* Long orthogonal beams — top, right, bottom, left */}
+            <polygon points="50,0 54,46 100,50 54,54 50,100 46,54 0,50 46,46" />
+            {/* Shorter diagonal accents at 45° */}
+            <polygon
+              points="50,18 52,48 82,50 52,52 50,82 48,52 18,50 48,48"
+              transform="rotate(45 50 50)"
+            />
+          </svg>
+        )
+      }
+
       function App() {
         const [markdown, setMarkdown] = useState("")
+        // The party (emoji background + markdown card + footer) only starts after
+        // a successful rich-text paste. Pre-paste, the page is just the H1 + a
+        // keyboard-shortcut hint, centered in the viewport.
+        const [partyStarted, setPartyStarted] = useState(false)
         const pasteRef = useRef(null)
 
+        // Platform-aware kbd hint. ⌘ on Mac, Ctrl elsewhere. Falls back to Ctrl
+        // when navigator is unavailable (SSR-safe even though we don't SSR).
+        const kbdHint = useMemo(() => {
+          if (typeof navigator === "undefined") return "ctrl + v"
+          const platform = navigator.platform || navigator.userAgent || ""
+          return /Mac|iPhone|iPad|iPod/.test(platform) ? "⌘ + v" : "ctrl + v"
+        }, [])
+
+        // Keep the hidden paste-catcher focused at all times so cmd/ctrl+V always
+        // fires a paste event. If the user clicks anywhere (including the Copy
+        // button), we refocus on the next tick. Text selection inside the
+        // markdown card still works because selection is preserved across
+        // focus changes.
         useEffect(() => {
-          pasteRef.current?.focus()
+          pasteRef.current?.focus({ preventScroll: true })
+          const refocus = () => {
+            if (document.activeElement !== pasteRef.current) {
+              pasteRef.current?.focus({ preventScroll: true })
+            }
+          }
+          document.addEventListener("click", refocus)
+          return () => document.removeEventListener("click", refocus)
         }, [])
 
         const highlighted = useMemo(
@@ -612,7 +665,14 @@ permalink: /get-down/
             return
           }
           const md = turndownService.turndown(preprocessHtml(html)).trim()
+          if (!md) {
+            toast.error("Couldn't extract markdown from that.")
+            return
+          }
           setMarkdown(md)
+          // Successful conversion → drop the beat. Splash → party (one-way).
+          // Subsequent pastes after this point just replace the markdown content.
+          setPartyStarted(true)
           toast.success("Converted!")
           if (pasteRef.current) pasteRef.current.innerHTML = ""
         }
@@ -633,98 +693,126 @@ permalink: /get-down/
           }
         }
 
-        return (
-          <main className="relative flex min-h-screen flex-col items-center justify-start px-4 pt-[8vh] sm:pt-[15vh] pb-12">
-            <FloatingEmojis />
-            <div className="relative z-10 w-full max-w-xl">
-              <header className="flex w-full flex-col items-center mb-10">
-                <h1
-                  className={`font-display text-red-400 text-6xl sm:text-7xl tracking-wider select-none ${TITLE_GLOW}`}
-                >
-                  GET DOWN
-                </h1>
-              </header>
+        // Hidden 1×1px contentEditable, off-screen, focused at all times. Catches
+        // ⌘V/Ctrl+V regardless of where focus appears to be on the visible page.
+        const pasteCatcher = (
+          <div
+            ref={pasteRef}
+            contentEditable
+            suppressContentEditableWarning
+            onPaste={handlePaste}
+            onBeforeInput={handleBeforeInput}
+            aria-hidden="true"
+            className="fixed top-0 left-0 w-px h-px overflow-hidden opacity-0 outline-none"
+            style={{ caretColor: "transparent" }}
+          />
+        )
 
-              {/* Card 1 — paste area */}
-              <section
-                aria-label="Paste rich text"
-                className="rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg shadow-black/20 mb-6"
-              >
-                <div className="relative">
-                  <div
-                    ref={pasteRef}
-                    contentEditable
-                    suppressContentEditableWarning
-                    onPaste={handlePaste}
-                    onBeforeInput={handleBeforeInput}
-                    className="bg-slate-950 border border-slate-800 rounded-lg p-4 min-h-[160px] outline-none focus:border-slate-600 focus:ring-2 focus:ring-slate-700 cursor-text transition-all"
-                  />
-                  <div className="absolute inset-0 p-4 pointer-events-none text-slate-500 select-none">
-                    Paste rich text here (⌘V / Ctrl+V)
-                  </div>
+        // The H1 is identical in both states — only its container width changes,
+        // which (via container queries on `text-[Ncqw]`) scales the type.
+        const titleH1 = (
+          <h1
+            className={`relative font-display text-violet-200 leading-[0.95] select-none text-center ${TITLE_GLOW}`}
+            aria-label="Get Down"
+          >
+            <span aria-hidden="true" className="block text-[35cqw]">GET</span>
+            <span aria-hidden="true" className="block text-[26cqw]">DOWN</span>
+            <Sparkle className="absolute -top-3 -left-2 sm:-top-4 sm:-left-3 w-12 h-12 sm:w-14 sm:h-14" />
+            <Sparkle className="absolute -bottom-3 -right-2 sm:-bottom-4 sm:-right-3 w-8 h-8 sm:w-10 sm:h-10" />
+          </h1>
+        )
+
+        const toaster = (
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: "#1e293b",
+                color: "#f1f5f9",
+                border: "1px solid #334155",
+              },
+            }}
+          />
+        )
+
+        // ============ Pre-paste: splash ============
+        // Only the H1 (in a wide `max-w-3xl` container so it's the biggest it can
+        // be) and the keyboard hint, centered in the viewport. No emoji
+        // background, no markdown card, no footer.
+        if (!partyStarted) {
+          return (
+            <>
+              <main className="relative flex min-h-screen items-center justify-center px-4">
+                <div className="w-full max-w-3xl">
+                  <header className="@container relative w-full">
+                    {titleH1}
+                  </header>
+                  <p className="mt-12 text-center font-mono text-slate-400 text-2xl sm:text-3xl tracking-wide">
+                    {kbdHint}
+                  </p>
                 </div>
-              </section>
+              </main>
+              {pasteCatcher}
+              {toaster}
+            </>
+          )
+        }
 
-              {/* Card 2 — markdown output */}
-              <section
-                aria-label="Markdown output"
-                className="rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg shadow-black/20"
-              >
-                <div className="relative bg-slate-950 border border-slate-800 rounded-lg overflow-hidden">
-                  {markdown ? (
-                    <pre className="overflow-x-auto p-4 pr-20 text-sm whitespace-pre-wrap font-mono leading-relaxed">
+        // ============ Post-paste: party ============
+        // Fixed-height (`h-screen`) flex column. H1 sticks to the top, footer
+        // sticks to the bottom, markdown card fills the middle and scrolls
+        // internally so the disco balls and dancers stay pinned to the viewport.
+        // FloatingEmojis only mounts here, so its existing fly-in entrance
+        // keyframes play fresh as the reveal animation.
+        return (
+          <>
+            <main className="relative flex flex-col h-screen px-4">
+              <FloatingEmojis />
+              <div className="relative z-10 mx-auto w-full max-w-xl flex flex-col flex-1 min-h-0 py-4">
+                {/* H1 sticks to top, in a narrower container so it's much smaller */}
+                <header className="@container shrink-0 w-full max-w-md mx-auto relative">
+                  {titleH1}
+                </header>
+
+                {/* Markdown card fills remaining vertical space; <pre> scrolls inside */}
+                <section
+                  aria-label="Markdown output"
+                  className="flex-1 min-h-0 my-4 rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg shadow-black/20 flex flex-col"
+                >
+                  <div className="relative bg-slate-950 border border-slate-800 rounded-lg overflow-hidden flex-1 min-h-0">
+                    <pre className="absolute inset-0 overflow-auto p-4 pr-20 text-sm whitespace-pre-wrap font-mono leading-relaxed">
                       <code
                         className="language-markdown hljs"
                         dangerouslySetInnerHTML={{ __html: highlighted }}
                       />
                     </pre>
-                  ) : (
-                    <pre className="p-4 pr-20 text-sm font-mono text-slate-500 select-none">
-                      Markdown renders here.
-                    </pre>
-                  )}
-                  <button
-                    onClick={handleCopy}
-                    disabled={!markdown}
-                    aria-disabled={!markdown}
-                    className={`absolute top-0 right-0 border-b border-l border-slate-800 rounded-bl-lg px-4 py-1.5 text-sm font-semibold transition-colors ${
-                      markdown
-                        ? "bg-slate-900 text-slate-100 hover:bg-slate-800 cursor-pointer"
-                        : "bg-slate-900 text-slate-500 cursor-not-allowed"
-                    }`}
-                  >
-                    Copy
-                  </button>
-                </div>
-              </section>
+                    <button
+                      onClick={handleCopy}
+                      className="absolute top-0 right-0 border-b border-l border-slate-800 rounded-bl-lg px-4 py-1.5 text-sm font-semibold transition-colors bg-slate-900 text-slate-100 hover:bg-slate-800 cursor-pointer"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </section>
 
-              {/* Footer — minimal credits + nav */}
-              <footer className="mt-4 px-3 text-xs text-slate-400 grid grid-cols-2 gap-x-4 gap-y-1">
-                <p>
-                  Made by{" "}
-                  <a href="/" className="no-underline hover:text-slate-300">
-                    Kieran
-                  </a>
-                </p>
-                <p className="text-right">
-                  <a href="/tools/" className="no-underline hover:text-slate-300">
-                    ← All tools
-                  </a>
-                </p>
-              </footer>
-            </div>
-
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                style: {
-                  background: "#1e293b",
-                  color: "#f1f5f9",
-                  border: "1px solid #334155",
-                },
-              }}
-            />
-          </main>
+                <footer className="shrink-0 px-3 text-xs text-slate-400 grid grid-cols-2 gap-x-4 gap-y-1">
+                  <p>
+                    Made by{" "}
+                    <a href="/" className="no-underline hover:text-slate-300">
+                      Kieran
+                    </a>
+                  </p>
+                  <p className="text-right">
+                    <a href="/tools/" className="no-underline hover:text-slate-300">
+                      ← All tools
+                    </a>
+                  </p>
+                </footer>
+              </div>
+            </main>
+            {pasteCatcher}
+            {toaster}
+          </>
         )
       }
 
