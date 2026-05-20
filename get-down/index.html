@@ -31,12 +31,9 @@ permalink: /get-down/
     <!-- Site-built Tailwind 4 utilities -->
     <link href="{{ '/assets/index.css' | relative_url }}" rel="stylesheet" />
 
-    <!-- highlight.js: UMD bundle (markdown grammar built in) + Dracula theme -->
+    <!-- highlight.js: UMD bundle (markdown grammar built in). Theme is
+         hand-rolled below in <style> to match the page's violet palette. -->
     <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/base16/dracula.min.css"
-    />
 
     <style>
       .font-display {
@@ -308,6 +305,33 @@ permalink: /get-down/
         .floating-emojis .emoji-floater { animation: none !important; }
         .emoji-anchor { transform: none !important; transition: none !important; }
       }
+
+      /* ============================================================
+         Markdown highlight.js theme — "Violet Mono"
+         Hand-rolled to extend the page's violet/slate palette into the
+         code block, so the highlighting reads as part of the design
+         rather than as a code block dropped into the page. Different
+         markdown tokens get different shades of violet plus slate/white;
+         no other hues. Specificity is just `.hljs-X` so this is the only
+         theme loaded — no upstream CSS to override.
+         ============================================================ */
+      .hljs { color: #f1f5f9; }                                              /* slate-100 base */
+      .hljs-section   { color: #ddd6fe; font-weight: 700; }                  /* violet-200 — headings */
+      .hljs-bullet    { color: #a78bfa; }                                    /* violet-400 — list markers */
+      .hljs-strong    { color: #c4b5fd; font-weight: 700; }                  /* violet-300 — bold */
+      .hljs-emphasis  { color: #cbd5e1; font-style: italic; }                /* slate-300 — italic */
+      .hljs-link      { color: #ddd6fe; text-decoration: underline; text-decoration-color: rgba(167,139,250,0.5); }
+      .hljs-string    { color: #a78bfa; }                                    /* violet-400 — link URLs / strings */
+      .hljs-symbol    { color: #c4b5fd; }
+      .hljs-code      { color: #c4b5fd; background: rgba(167,139,250,0.10); padding: 0 .25em; border-radius: 3px; }
+      .hljs-quote     { color: #94a3b8; font-style: italic; }                /* slate-400 — blockquotes */
+      .hljs-attr      { color: #8b5cf6; }                                    /* violet-500 */
+      .hljs-meta      { color: #94a3b8; }
+      .hljs-comment   { color: #94a3b8; font-style: italic; }
+      .hljs-keyword   { color: #c4b5fd; }
+      .hljs-built_in  { color: #ddd6fe; }
+      .hljs-title     { color: #ddd6fe; }
+      .hljs-number    { color: #a78bfa; }
     </style>
 
     <script type="importmap">
@@ -774,25 +798,25 @@ permalink: /get-down/
                   {titleH1}
                 </header>
 
-                {/* Markdown card fills remaining vertical space; <pre> scrolls inside */}
+                {/* Markdown card fills remaining vertical space; <pre> scrolls inside.
+                    Frosted-glass: semi-transparent slate-950 over the floating
+                    emojis, blurred backdrop, white/10 edge for the lit-glass rim. */}
                 <section
                   aria-label="Markdown output"
-                  className="flex-1 min-h-0 my-4 rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg shadow-black/20 flex flex-col"
+                  className="relative flex-1 min-h-0 my-4 flex flex-col overflow-hidden rounded-xl border border-white/10 bg-slate-950/60 backdrop-blur-md"
                 >
-                  <div className="relative bg-slate-950 border border-slate-800 rounded-lg overflow-hidden flex-1 min-h-0">
-                    <pre className="absolute inset-0 overflow-auto p-4 pr-20 text-sm whitespace-pre-wrap font-mono leading-relaxed">
-                      <code
-                        className="language-markdown hljs"
-                        dangerouslySetInnerHTML={{ __html: highlighted }}
-                      />
-                    </pre>
-                    <button
-                      onClick={handleCopy}
-                      className="absolute top-0 right-0 border-b border-l border-slate-800 rounded-bl-lg px-4 py-1.5 text-sm font-semibold transition-colors bg-slate-900 text-slate-100 hover:bg-slate-800 cursor-pointer"
-                    >
-                      Copy
-                    </button>
-                  </div>
+                  <pre className="absolute inset-0 overflow-auto p-5 text-sm whitespace-pre-wrap font-mono leading-relaxed">
+                    <code
+                      className="language-markdown hljs"
+                      dangerouslySetInnerHTML={{ __html: highlighted }}
+                    />
+                  </pre>
+                  <button
+                    onClick={handleCopy}
+                    className="absolute top-2 right-2 rounded-full border border-white/10 bg-slate-800/80 backdrop-blur-md px-3 py-1 text-xs font-semibold transition-colors text-slate-100 hover:bg-slate-700/80 cursor-pointer"
+                  >
+                    Copy
+                  </button>
                 </section>
 
                 <footer className="shrink-0 px-3 text-xs text-slate-400 grid grid-cols-2 gap-x-4 gap-y-1">
