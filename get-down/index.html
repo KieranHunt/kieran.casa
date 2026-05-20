@@ -28,6 +28,13 @@ permalink: /get-down/
     <link rel="preload" as="image" type="image/png" href="https://emojicdn.elk.sh/🪩" />
     <link rel="preload" as="image" type="image/png" href="https://emojicdn.elk.sh/🕺" />
 
+    <!-- Prefetch Prettier so the first paste doesn't pay a cold-start penalty.
+         The imports live in a <script type="text/babel"> body, which can't start
+         resolving until tsx has loaded and compiled it; modulepreload kicks the
+         fetch off in parallel with that compile step. -->
+    <link rel="modulepreload" href="https://esm.sh/prettier@3/standalone" crossorigin />
+    <link rel="modulepreload" href="https://esm.sh/prettier@3/plugins/markdown" crossorigin />
+
     <!-- Site-built Tailwind 4 utilities -->
     <link href="{{ '/assets/index.css' | relative_url }}" rel="stylesheet" />
 
@@ -346,7 +353,9 @@ permalink: /get-down/
           "unified": "https://esm.sh/unified@11",
           "rehype-parse": "https://esm.sh/rehype-parse@9",
           "rehype-stringify": "https://esm.sh/rehype-stringify@10",
-          "unist-util-visit": "https://esm.sh/unist-util-visit@5"
+          "unist-util-visit": "https://esm.sh/unist-util-visit@5",
+          "prettier": "https://esm.sh/prettier@3/standalone",
+          "prettier/plugins/markdown": "https://esm.sh/prettier@3/plugins/markdown"
         }
       }
     </script>
@@ -366,6 +375,8 @@ permalink: /get-down/
       import rehypeParse from "rehype-parse"
       import rehypeStringify from "rehype-stringify"
       import { visit } from "unist-util-visit"
+      import * as prettier from "prettier"
+      import * as prettierMarkdown from "prettier/plugins/markdown"
 
       const turndownService = new TurndownService({
         headingStyle: "atx",
@@ -431,9 +442,92 @@ permalink: /get-down/
         }
       }
 
+      // Inline phrasing tags that survive intact inside table cells. Anything
+      // else (block, unknown, <br>) gets unwrapped during flattening. <br> is
+      // intentionally excluded despite being phrasing — turndown emits "  \n"
+      // for it, which would shatter the GFM table.
+      const INLINE_PHRASING_TAGS = new Set([
+        "a", "abbr", "b", "bdi", "bdo", "cite", "code", "data", "dfn", "em",
+        "i", "kbd", "mark", "q", "rp", "rt", "ruby", "s", "samp", "small",
+        "span", "strong", "sub", "sup", "time", "u", "var", "wbr",
+        "del", "ins", "img",
+      ])
+
+      // Recursively flatten a hast node intended for placement inside a
+      // table cell. Returns an array of nodes containing only text and
+      // inline-phrasing elements; any block descendant is unwrapped with a
+      // space text node on either side so adjacent unwrapped siblings
+      // don't smush together. Whitespace runs inside text nodes are
+      // collapsed to a single space.
+      function flattenCellNode(node) {
+        if (node.type === "text") {
+          return [{ type: "text", value: node.value.replace(/\s+/g, " ") }]
+        }
+        if (node.type === "element") {
+          const kids = node.children.flatMap(flattenCellNode)
+          if (INLINE_PHRASING_TAGS.has(node.tagName)) {
+            return [{ ...node, children: kids }]
+          }
+          return [{ type: "text", value: " " }, ...kids, { type: "text", value: " " }]
+        }
+        return []
+      }
+
+      /**
+       * Flatten the content of every <td>/<th> to inline-only. GFM tables
+       * require each row on a single line, so any block-level descendant of
+       * a cell (<p>, <div>, <br>, lists, nested tables, <pre>) would cause
+       * turndown to emit \n inside the cell and shatter the table. We
+       * unwrap those, separating their children with single spaces, and
+       * collapse runs of whitespace in text nodes to a single space.
+       *
+       * The allowlist preserves bold/italic/links/inline-code unchanged so
+       * the cell's formatting survives. Per the project decision tree:
+       * we replace newlines with spaces (no raw <br> in markdown), and
+       * accept the rare cost of flattening nested tables / pre-blocks
+       * uniformly rather than special-casing them.
+       */
+      function rehypeFlattenTableCells() {
+        return (tree) => {
+          visit(tree, { type: "element" }, (node) => {
+            if (node.tagName !== "td" && node.tagName !== "th") return
+
+            const flat = node.children.flatMap(flattenCellNode)
+
+            // Coalesce adjacent direct-child text nodes so the final
+            // whitespace pass can collapse runs spanning former unwrap
+            // boundaries (e.g. trailing space of one block + leading space
+            // of the next).
+            const coalesced = []
+            for (const child of flat) {
+              const last = coalesced[coalesced.length - 1]
+              if (child.type === "text" && last?.type === "text") {
+                last.value += child.value
+              } else {
+                coalesced.push(child)
+              }
+            }
+
+            // Collapse \s+ to single space; trim leading whitespace from
+            // the first text node and trailing whitespace from the last;
+            // drop any text node that becomes empty.
+            node.children = coalesced
+              .map((child, i, arr) => {
+                if (child.type !== "text") return child
+                let v = child.value.replace(/\s+/g, " ")
+                if (i === 0) v = v.replace(/^\s+/, "")
+                if (i === arr.length - 1) v = v.replace(/\s+$/, "")
+                return { type: "text", value: v }
+              })
+              .filter((child) => child.type !== "text" || child.value !== "")
+          })
+        }
+      }
+
       const preprocessor = unified()
         .use(rehypeParse, { fragment: true })
         .use(rehypeEnsureTableHeaders)
+        .use(rehypeFlattenTableCells)
         .use(rehypeStringify)
 
       const preprocessHtml = (html) => String(preprocessor.processSync(html))
@@ -687,14 +781,30 @@ permalink: /get-down/
           [markdown]
         )
 
-        const handlePaste = (e) => {
+        const handlePaste = async (e) => {
           e.preventDefault()
           const html = e.clipboardData.getData("text/html")
           if (!html) {
             toast.error("No rich text on clipboard — copy from a browser, doc, or email.")
             return
           }
-          const md = turndownService.turndown(preprocessHtml(html)).trim()
+          const raw = turndownService.turndown(preprocessHtml(html))
+          // Prettier normalises the markdown (collapses paragraphs, aligns tables,
+          // standardises list indentation). On failure (rare edge cases in the
+          // markdown parser) silently fall back to the raw turndown output —
+          // the user pasted valid rich text and shouldn't see an internal warning.
+          const formatted = await prettier
+            .format(raw, {
+              parser: "markdown",
+              plugins: [prettierMarkdown],
+              proseWrap: "never",
+              embeddedLanguageFormatting: "off",
+            })
+            .catch(() => raw)
+          // Prettier appends a trailing newline; trim it so the in-page <pre>
+          // doesn't show a blank tail line and the blockquote helper doesn't
+          // emit a stray final ">".
+          const md = formatted.trim()
           if (!md) {
             toast.error("Couldn't extract markdown from that.")
             return
