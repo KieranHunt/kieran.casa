@@ -749,12 +749,16 @@ permalink: /get-down/
         const [partyStarted, setPartyStarted] = useState(false)
         const pasteRef = useRef(null)
 
-        // Platform-aware kbd hint. ⌘ on Mac, Ctrl elsewhere. Falls back to Ctrl
-        // when navigator is unavailable (SSR-safe even though we don't SSR).
-        const kbdHint = useMemo(() => {
-          if (typeof navigator === "undefined") return "ctrl + v"
+        // Platform-aware kbd modifier. ⌘ on Mac, ctrl elsewhere. Falls back
+        // to ctrl when navigator is unavailable (SSR-safe even though we
+        // don't SSR). The full hint is laid out in JSX below — splitting
+        // into spans lets us nudge the "+" glyph vertically so it lines up
+        // with the cap-height centerline of ⌘/letters (the bare "+" sits
+        // on the math axis, which reads as too low next to those glyphs).
+        const kbdMod = useMemo(() => {
+          if (typeof navigator === "undefined") return "ctrl"
           const platform = navigator.platform || navigator.userAgent || ""
-          return /Mac|iPhone|iPad|iPod/.test(platform) ? "⌘ + v" : "ctrl + v"
+          return /Mac|iPhone|iPad|iPod/.test(platform) ? "⌘" : "ctrl"
         }, [])
 
         // Keep the hidden paste-catcher focused at all times so cmd/ctrl+V always
@@ -896,8 +900,10 @@ permalink: /get-down/
                   <header className="@container relative w-full">
                     {titleH1}
                   </header>
-                  <p className="mt-12 text-center font-mono text-slate-400 text-2xl sm:text-3xl tracking-wide">
-                    {kbdHint}
+                  <p className="mt-12 flex items-baseline justify-center gap-2 font-mono text-slate-400 text-2xl sm:text-3xl tracking-wide leading-none">
+                    <span>{kbdMod}</span>
+                    <span className="-translate-y-[0.06em]">+</span>
+                    <span className="text-[0.95em] -translate-y-[0.12em]">v</span>
                   </p>
                 </div>
               </main>
