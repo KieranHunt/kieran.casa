@@ -439,6 +439,12 @@ permalink: /get-down/
       const preprocessHtml = (html) => String(preprocessor.processSync(html))
       // === end preprocessing ===
 
+      // Prefix every line with markdown blockquote syntax. Empty lines become a
+      // bare ">" (no trailing space) so the blockquote stays contiguous in
+      // CommonMark/GFM renderers without leaving stray trailing whitespace.
+      const toBlockquote = (md) =>
+        md.split("\n").map((line) => (line ? `> ${line}` : ">")).join("\n")
+
       // Three-layer purple glow text-shadow for the disco-poster title:
       // light violet text with progressively darker, larger violet halos behind.
       const TITLE_GLOW =
@@ -707,14 +713,23 @@ permalink: /get-down/
           }
         }
 
-        const handleCopy = async () => {
-          if (!markdown) return
+        const handleCopyText = async (text, successMessage) => {
           try {
-            await navigator.clipboard.writeText(markdown)
-            toast.success("Copied to clipboard!")
+            await navigator.clipboard.writeText(text)
+            toast.success(successMessage)
           } catch {
             toast.error("Couldn't copy — try selecting the text manually.")
           }
+        }
+
+        const handleCopy = () => {
+          if (!markdown) return
+          handleCopyText(markdown, "Copied!")
+        }
+
+        const handleCopyQuote = () => {
+          if (!markdown) return
+          handleCopyText(toBlockquote(markdown), "Copied as blockquote!")
         }
 
         // Hidden 1×1px contentEditable, off-screen, focused at all times. Catches
@@ -805,18 +820,63 @@ permalink: /get-down/
                   aria-label="Markdown output"
                   className="relative flex-1 min-h-0 my-4 flex flex-col overflow-hidden rounded-xl border border-white/10 bg-slate-950/60 backdrop-blur-md"
                 >
-                  <pre className="absolute inset-0 overflow-auto p-5 text-sm whitespace-pre-wrap font-mono leading-relaxed">
+                  <pre className="absolute inset-0 overflow-auto scrollbar-none p-5 text-sm whitespace-pre-wrap break-words font-mono leading-relaxed">
                     <code
                       className="language-markdown hljs"
                       dangerouslySetInnerHTML={{ __html: highlighted }}
                     />
                   </pre>
-                  <button
-                    onClick={handleCopy}
-                    className="absolute top-2 right-2 rounded-full border border-white/10 bg-slate-800/80 backdrop-blur-md px-3 py-1 text-xs font-semibold transition-colors text-slate-100 hover:bg-slate-700/80 cursor-pointer"
-                  >
-                    Copy
-                  </button>
+                  {/* Two-segment pill: "Copy as blockquote" (left) + plain "Copy" (right).
+                      Outer container clips inner button hover backgrounds to the rounded
+                      pill shape via overflow-hidden. Inner buttons are rectangular; the
+                      divider is a left border on the right segment. */}
+                  <div className="absolute top-2 right-2 flex overflow-hidden rounded-full border border-white/10 bg-slate-800/80 backdrop-blur-md text-slate-100">
+                    <button
+                      onClick={handleCopyQuote}
+                      aria-label="Copy as blockquote"
+                      title="Copy as blockquote"
+                      className="flex items-center gap-1 px-2.5 py-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
+                    >
+                      <span className="font-semibold text-base leading-none">{">"}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="size-4"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={handleCopy}
+                      aria-label="Copy markdown"
+                      title="Copy"
+                      className="border-l border-white/10 p-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="size-4"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </section>
 
                 <footer className="shrink-0 px-3 text-xs text-slate-400 grid grid-cols-2 gap-x-4 gap-y-1">
