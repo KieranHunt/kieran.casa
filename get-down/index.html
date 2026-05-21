@@ -1,0 +1,1067 @@
+---
+layout: null
+permalink: /get-down/
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Get Down ∷ rich text to markdown</title>
+    <meta
+      name="description"
+      content="Convert pasted rich text from your browser, docs, or email into clean Markdown — preserving headings, lists, links, and tables."
+    />
+
+    <!-- Favicon: 🪩 disco ball, served as Apple-style PNG via emojicdn.elk.sh
+         so it renders identically across OSes (otherwise each platform
+         substitutes its own native emoji glyph). Same source as the floating
+         emoji background below, so the browser caches one fetch. -->
+    <link rel="icon" type="image/png" href="https://emojicdn.elk.sh/🪩" />
+
+    <!-- Monoton — striped retro disco display font for the title -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Monoton&display=swap" rel="stylesheet" />
+
+    <!-- Apple-style emoji PNGs via emojicdn.elk.sh — preload so the entrance never flashes a gap -->
+    <link rel="preload" as="image" type="image/png" href="https://emojicdn.elk.sh/🪩" />
+    <link rel="preload" as="image" type="image/png" href="https://emojicdn.elk.sh/🕺" />
+
+    <!-- Prefetch Prettier so the first paste doesn't pay a cold-start penalty.
+         The imports live in a <script type="text/babel"> body, which can't start
+         resolving until tsx has loaded and compiled it; modulepreload kicks the
+         fetch off in parallel with that compile step. -->
+    <link rel="modulepreload" href="https://esm.sh/prettier@3/standalone" crossorigin />
+    <link rel="modulepreload" href="https://esm.sh/prettier@3/plugins/markdown" crossorigin />
+
+    <!-- Site-built Tailwind 4 utilities -->
+    <link href="{{ '/assets/index.css' | relative_url }}" rel="stylesheet" />
+
+    <!-- highlight.js: UMD bundle (markdown grammar built in). Theme is
+         hand-rolled below in <style> to match the page's violet palette. -->
+    <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
+
+    <style>
+      .font-display {
+        font-family: "Monoton", "Cooper Black", "Cooper Std", Georgia, serif;
+      }
+      /* highlight.js applies its own background; strip it so the slate-950 card shows through */
+      pre code.hljs {
+        background: transparent;
+        padding: 0;
+      }
+
+      /* ============================================================
+         Floating emoji background (🕺 + 🪩)
+         CSS reverse-engineered from typer.space, adapted for dark bg
+         ============================================================ */
+      .floating-emojis {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100vh;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 0;
+      }
+      /* DOM layers, each carrying one transform so the three motions compose:
+           .emoji-anchor  — position + parallax transform (driven from JS)
+           .emoji-floater — infinite float keyframe (transform)
+           .emoji         — entrance keyframe (transform) + static rotation, opacity, glow */
+      .emoji-anchor {
+        position: absolute;
+        pointer-events: none;
+        will-change: transform;
+      }
+      .emoji-floater {
+        display: block;
+        will-change: transform;
+      }
+      .emoji {
+        display: block;
+        position: relative;
+        user-select: none;
+        line-height: 0;
+      }
+      .emoji-img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Three depth tiers — sizes mirror typer's keycap tiers */
+      .emoji-tier-lg .emoji-img { width: 64px; height: 64px; }
+      .emoji-tier-md .emoji-img { width: 44px; height: 44px; }
+      .emoji-tier-sm .emoji-img { width: 28px; height: 28px; }
+
+      /* Per-position layout — copied from typer */
+      .emoji-pos-1  { top: 18%;    left: 8%;  }
+      .emoji-pos-2  { top: 20%;    right: 7%; }
+      .emoji-pos-3  { bottom: 18%; left: 6%;  }
+      .emoji-pos-4  { bottom: 16%; right: 6%; }
+      .emoji-pos-5  { top: 10%;    left: 24%; }
+      .emoji-pos-6  { top: 12%;    right: 22%;}
+      .emoji-pos-7  { top: 38%;    left: 8%;  }
+      .emoji-pos-8  { top: 40%;    right: 8%; }
+      .emoji-pos-9  { top: 5%;     left: 40%; }
+      .emoji-pos-10 { bottom: 25%; right: 16%;}
+      .emoji-pos-11 { bottom: 12%; left: 20%; }
+      .emoji-pos-12 { bottom: 10%; right: 18%;}
+      .emoji-pos-13 { top: 8%;     left: 44%; }
+      .emoji-pos-14 { top: 6%;     right: 38%;}
+      .emoji-pos-15 { top: 32%;    left: 20%; }
+      .emoji-pos-16 { top: 30%;    right: 18%;}
+      .emoji-pos-17 { top: 14%;    left: 14%; }
+      .emoji-pos-18 { bottom: 30%; right: 12%;}
+      .emoji-pos-19 { bottom: 6%;  left: 35%; }
+      .emoji-pos-20 { top: 4%;     right: 14%;}
+      .emoji-pos-21 { bottom: 32%; left: 18%; }
+      .emoji-pos-22 { bottom: 8%;  right: 32%;}
+      .emoji-pos-23 { top: 18%;    left: 36%; }
+      .emoji-pos-24 { top: 45%;    right: 16%;}
+      .emoji-pos-25 { bottom: 16%; left: 42%; }
+      .emoji-pos-26 { bottom: 22%; right: 36%;}
+
+      /* Per-position visual tier (opacity + blur + glow). Rotation is applied
+         inline from JS, capped to ±20° for 🕺 (dancers) and free-range for 🪩 (balls). */
+
+      /* TIER 1 — front (no blur, full glow) */
+      .emoji-pos-1  .emoji,
+      .emoji-pos-2  .emoji { opacity: .9;  filter: drop-shadow(0 0 14px rgba(255,255,255,.40)); }
+      .emoji-pos-3  .emoji,
+      .emoji-pos-4  .emoji { opacity: .85; filter: drop-shadow(0 0 14px rgba(255,255,255,.35)); }
+
+      /* TIER 2 — mid (slight blur, medium glow) */
+      .emoji-pos-5  .emoji,
+      .emoji-pos-6  .emoji { opacity: .7;  filter: blur(1px)   drop-shadow(0 0 10px rgba(255,255,255,.30)); }
+      .emoji-pos-7  .emoji,
+      .emoji-pos-8  .emoji { opacity: .65; filter: blur(1.5px) drop-shadow(0 0 10px rgba(255,255,255,.28)); }
+      .emoji-pos-9  .emoji,
+      .emoji-pos-10 .emoji { opacity: .6;  filter: blur(1.5px) drop-shadow(0 0 8px  rgba(255,255,255,.24)); }
+      .emoji-pos-11 .emoji,
+      .emoji-pos-12 .emoji { opacity: .55; filter: blur(2px)   drop-shadow(0 0 8px  rgba(255,255,255,.22)); }
+
+      /* TIER 3 — back (heavier blur, faintest glow) */
+      .emoji-pos-13 .emoji,
+      .emoji-pos-14 .emoji,
+      .emoji-pos-15 .emoji,
+      .emoji-pos-16 .emoji { opacity: .45; filter: blur(2.5px) drop-shadow(0 0 6px rgba(255,255,255,.18)); }
+      .emoji-pos-17 .emoji,
+      .emoji-pos-18 .emoji,
+      .emoji-pos-19 .emoji,
+      .emoji-pos-20 .emoji { opacity: .4;  filter: blur(3px)   drop-shadow(0 0 5px rgba(255,255,255,.15)); }
+      .emoji-pos-21 .emoji,
+      .emoji-pos-22 .emoji,
+      .emoji-pos-23 .emoji,
+      .emoji-pos-24 .emoji { opacity: .35; filter: blur(3.5px) drop-shadow(0 0 4px rgba(255,255,255,.13)); }
+      .emoji-pos-25 .emoji,
+      .emoji-pos-26 .emoji { opacity: .3;  filter: blur(4px)   drop-shadow(0 0 4px rgba(255,255,255,.11)); }
+
+      /* Off-screen corner emojis (positions 27-30) — pre-placed just past each
+         corner so they drift INTO view via parallax when the cursor approaches
+         that corner, filling the void where in-view foreground emojis drift away. */
+      .emoji-pos-27 { top:    -10%; left:  -10%; }  /* outside top-left  */
+      .emoji-pos-28 { top:    -10%; right: -10%; }  /* outside top-right */
+      .emoji-pos-29 { bottom: -10%; left:  -10%; }  /* outside bottom-left  */
+      .emoji-pos-30 { bottom: -10%; right: -10%; }  /* outside bottom-right */
+
+      .emoji-pos-27 .emoji,
+      .emoji-pos-28 .emoji,
+      .emoji-pos-29 .emoji,
+      .emoji-pos-30 .emoji { opacity: .9; filter: drop-shadow(0 0 14px rgba(255,255,255,.40)); }
+
+      /* Off-screen edge emojis (positions 31-38) — two per edge, revealed when the
+         cursor moves toward that edge. Together with the corners they cover the
+         entire periphery so no matter which direction the cursor pulls, fresh
+         emojis swing into view from the opposite side. */
+      .emoji-pos-31 { top:    -12%; left:    22%; }  /* outside top edge, left   */
+      .emoji-pos-32 { top:    -12%; left:    65%; }  /* outside top edge, right  */
+      .emoji-pos-33 { bottom: -12%; left:    25%; }  /* outside bottom edge, left  */
+      .emoji-pos-34 { bottom: -12%; left:    60%; }  /* outside bottom edge, right */
+      .emoji-pos-35 { top:     25%; left:   -10%; }  /* outside left edge, top    */
+      .emoji-pos-36 { top:     60%; left:   -10%; }  /* outside left edge, bottom */
+      .emoji-pos-37 { top:     25%; right:  -10%; }  /* outside right edge, top    */
+      .emoji-pos-38 { top:     60%; right:  -10%; }  /* outside right edge, bottom */
+
+      .emoji-pos-31 .emoji,
+      .emoji-pos-32 .emoji,
+      .emoji-pos-33 .emoji,
+      .emoji-pos-34 .emoji,
+      .emoji-pos-35 .emoji,
+      .emoji-pos-36 .emoji,
+      .emoji-pos-37 .emoji,
+      .emoji-pos-38 .emoji { opacity: .8; filter: blur(.5px) drop-shadow(0 0 12px rgba(255,255,255,.32)); }
+
+      /* Float keyframes — verbatim from typer (slow, ambient drift) */
+      @keyframes emoji-float-a {
+        0%, 100% { transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0); }
+        20% { transform: translate3d( 4px,  -8px,  6px) rotateX( 3deg)   rotateY(-2.5deg) rotateZ( 1deg);   }
+        40% { transform: translate3d(-3px,  -4px, -4px) rotateX(-1.5deg) rotateY( 3deg)   rotateZ(-0.5deg); }
+        60% { transform: translate3d( 2px, -11px,  3px) rotateX( 2deg)   rotateY(-1deg)   rotateZ( 0.8deg); }
+        80% { transform: translate3d(-1px,  -6px, -2px) rotateX(-2.5deg) rotateY( 1.5deg) rotateZ(-0.3deg); }
+      }
+      @keyframes emoji-float-b {
+        0%, 100% { transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0); }
+        20% { transform: translate3d(-5px,  -6px,  5px) rotateX(-2deg)   rotateY( 3.5deg) rotateZ(-1.2deg); }
+        40% { transform: translate3d( 3px, -10px, -5px) rotateX( 2.5deg) rotateY(-1.5deg) rotateZ( 0.6deg); }
+        60% { transform: translate3d(-2px,  -3px,  3px) rotateX(-1deg)   rotateY(-2deg)   rotateZ(-0.4deg); }
+        80% { transform: translate3d( 4px,  -7px, -1px) rotateX( 1.5deg) rotateY( 2.5deg) rotateZ( 0.9deg); }
+      }
+      @keyframes emoji-float-c {
+        0%, 100% { transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0); }
+        20% { transform: translate3d( 6px,  -5px, -3px) rotateX( 1.5deg) rotateY(-3.5deg) rotateZ( 0.7deg); }
+        40% { transform: translate3d(-4px, -12px,  4px) rotateX(-3deg)   rotateY( 1deg)   rotateZ(-1deg);   }
+        60% { transform: translate3d( 3px,  -7px, -2px) rotateX( 1deg)   rotateY( 2.5deg) rotateZ( 0.3deg); }
+        80% { transform: translate3d(-2px,  -9px,  5px) rotateX(-2deg)   rotateY(-1.5deg) rotateZ(-0.6deg); }
+      }
+      @keyframes emoji-float-d {
+        0%, 100% { transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0); }
+        20% { transform: translate3d(-3px,  -9px,  4px) rotateX(-3.5deg) rotateY( 1.5deg) rotateZ(-0.8deg); }
+        40% { transform: translate3d( 5px,  -5px, -6px) rotateX( 1.5deg) rotateY(-2.5deg) rotateZ( 1.1deg); }
+        60% { transform: translate3d(-4px, -13px,  2px) rotateX( 2.5deg) rotateY( 3deg)   rotateZ(-0.5deg); }
+        80% { transform: translate3d( 2px,  -7px, -3px) rotateX(-1deg)   rotateY(-2deg)   rotateZ( 0.4deg); }
+      }
+      @keyframes emoji-float-e {
+        0%, 100% { transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0); }
+        20% { transform: translate3d( 3px,  -7px, -5px) rotateX( 2.5deg) rotateY( 2deg)   rotateZ( 1.3deg); }
+        40% { transform: translate3d(-5px, -11px,  3px) rotateX(-1.5deg) rotateY(-3deg)   rotateZ(-0.7deg); }
+        60% { transform: translate3d( 4px,  -4px, -1px) rotateX(-2deg)   rotateY( 1.5deg) rotateZ( 0.5deg); }
+        80% { transform: translate3d(-1px,  -8px,  4px) rotateX( 3deg)   rotateY(-2.5deg) rotateZ(-1deg);   }
+      }
+      @keyframes emoji-float-f {
+        0%, 100% { transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0); }
+        20% { transform: translate3d(-4px, -10px,  3px) rotateX( 3deg)   rotateY( 3.5deg) rotateZ(-0.6deg); }
+        40% { transform: translate3d( 2px,  -6px, -4px) rotateX(-2.5deg) rotateY(-1deg)   rotateZ( 1.2deg); }
+        60% { transform: translate3d(-3px,  -8px,  5px) rotateX( 1.5deg) rotateY(-3deg)   rotateZ(-0.9deg); }
+        80% { transform: translate3d( 5px,  -3px, -2px) rotateX(-1deg)   rotateY( 2deg)   rotateZ( 0.3deg); }
+      }
+      @keyframes emoji-float-g {
+        0%, 100% { transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0); }
+        20% { transform: translate3d( 5px,  -4px,  4px) rotateX(-2deg)   rotateY(-3deg)   rotateZ( 0.9deg); }
+        40% { transform: translate3d(-2px,  -9px, -3px) rotateX( 3.5deg) rotateY( 2deg)   rotateZ(-1.1deg); }
+        60% { transform: translate3d( 1px, -12px,  2px) rotateX(-1.5deg) rotateY( 3.5deg) rotateZ( 0.6deg); }
+        80% { transform: translate3d(-4px,  -5px, -4px) rotateX( 2deg)   rotateY(-1.5deg) rotateZ(-0.4deg); }
+      }
+      @keyframes emoji-float-h {
+        0%, 100% { transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0); }
+        20% { transform: translate3d(-2px, -11px, -4px) rotateX( 2.5deg) rotateY(-2deg)   rotateZ(-1.3deg); }
+        40% { transform: translate3d( 4px,  -3px,  5px) rotateX(-3deg)   rotateY( 3deg)   rotateZ( 0.8deg); }
+        60% { transform: translate3d(-5px,  -7px, -1px) rotateX( 1deg)   rotateY(-3.5deg) rotateZ(-0.5deg); }
+        80% { transform: translate3d( 3px, -10px,  3px) rotateX(-2.5deg) rotateY( 1.5deg) rotateZ( 1deg);   }
+      }
+
+      .emoji-float-a { animation: 11s cubic-bezier(0.37, 0, 0.63, 1) -3s  infinite emoji-float-a; }
+      .emoji-float-b { animation: 13s cubic-bezier(0.37, 0, 0.63, 1) -7s  infinite emoji-float-b; }
+      .emoji-float-c { animation: 10s cubic-bezier(0.37, 0, 0.63, 1) -1s  infinite emoji-float-c; }
+      .emoji-float-d { animation:  9s cubic-bezier(0.37, 0, 0.63, 1) -5s  infinite emoji-float-d; }
+      .emoji-float-e { animation: 12s cubic-bezier(0.37, 0, 0.63, 1) -4s  infinite emoji-float-e; }
+      .emoji-float-f { animation: 14s cubic-bezier(0.37, 0, 0.63, 1) -8s  infinite emoji-float-f; }
+      .emoji-float-g { animation:  8s cubic-bezier(0.37, 0, 0.63, 1) -2s  infinite emoji-float-g; }
+      .emoji-float-h { animation: 15s cubic-bezier(0.37, 0, 0.63, 1) -11s infinite emoji-float-h; }
+
+      /* Entrance — staggered fly-in, copied from typer's keycap-enter.
+         Applied to the inner .emoji element so it doesn't fight the float on .emoji-floater. */
+      @keyframes emoji-enter {
+        0%   { opacity: 0; transform: scale(0.8) translate3d(var(--enter-x, 0), var(--enter-y, 20px), -30px); }
+        100% { opacity: 1; transform: scale(1)   translate3d(0, 0, 0); }
+      }
+      .floating-emojis .emoji { animation-fill-mode: both; }
+      /* The cascade kicks off the moment <FloatingEmojis> mounts (i.e. on
+         successful paste), so delays start at 0s. The 15ms-per-tier stagger
+         is preserved — it's what gives the entrance its disco-poster shimmer
+         rather than reading as a single hard pop. */
+      .emoji-enter-1  { --enter-x:  80px; --enter-y:  50px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0s     1 normal both running emoji-enter; }
+      .emoji-enter-2  { --enter-x: -80px; --enter-y:  50px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.015s 1 normal both running emoji-enter; }
+      .emoji-enter-3  { --enter-x:  60px; --enter-y: -50px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.030s 1 normal both running emoji-enter; }
+      .emoji-enter-4  { --enter-x: -60px; --enter-y: -40px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.045s 1 normal both running emoji-enter; }
+      .emoji-enter-5  { --enter-x:  40px; --enter-y:  32px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.060s 1 normal both running emoji-enter; }
+      .emoji-enter-6  { --enter-x: -32px; --enter-y:  24px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.075s 1 normal both running emoji-enter; }
+      .emoji-enter-7  { --enter-x:  32px; --enter-y: -24px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.090s 1 normal both running emoji-enter; }
+      .emoji-enter-8  { --enter-x: -24px; --enter-y: -20px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.105s 1 normal both running emoji-enter; }
+      .emoji-enter-9  { --enter-x:  20px; --enter-y:  28px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.120s 1 normal both running emoji-enter; }
+      .emoji-enter-10 { --enter-x: -28px; --enter-y:  16px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.135s 1 normal both running emoji-enter; }
+      .emoji-enter-11 { --enter-x:  24px; --enter-y: -16px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.150s 1 normal both running emoji-enter; }
+      .emoji-enter-12 { --enter-x: -20px; --enter-y: -24px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.165s 1 normal both running emoji-enter; }
+      .emoji-enter-13 { --enter-x:  12px; --enter-y:  15px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.180s 1 normal both running emoji-enter; }
+      .emoji-enter-14 { --enter-x: -12px; --enter-y:   9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.195s 1 normal both running emoji-enter; }
+      .emoji-enter-15 { --enter-x:   9px; --enter-y: -12px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.210s 1 normal both running emoji-enter; }
+      .emoji-enter-16 { --enter-x:  -9px; --enter-y:  -9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.225s 1 normal both running emoji-enter; }
+      .emoji-enter-17 { --enter-x:   6px; --enter-y:  12px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.240s 1 normal both running emoji-enter; }
+      .emoji-enter-18 { --enter-x:  -9px; --enter-y:   6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.255s 1 normal both running emoji-enter; }
+      .emoji-enter-19 { --enter-x:   6px; --enter-y:  -9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.270s 1 normal both running emoji-enter; }
+      .emoji-enter-20 { --enter-x:  -6px; --enter-y:   9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.285s 1 normal both running emoji-enter; }
+      .emoji-enter-21 { --enter-x:   6px; --enter-y:  -6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.300s 1 normal both running emoji-enter; }
+      .emoji-enter-22 { --enter-x:  -6px; --enter-y:  -6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.315s 1 normal both running emoji-enter; }
+      .emoji-enter-23 { --enter-x:   3px; --enter-y:   6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.330s 1 normal both running emoji-enter; }
+      .emoji-enter-24 { --enter-x:  -3px; --enter-y:  -6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.345s 1 normal both running emoji-enter; }
+      .emoji-enter-25 { --enter-x:   3px; --enter-y:   3px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.360s 1 normal both running emoji-enter; }
+      .emoji-enter-26 { --enter-x:  -3px; --enter-y:  -3px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.375s 1 normal both running emoji-enter; }
+
+      /* Responsive: hide back-row emojis progressively at smaller viewports */
+      @media (max-width: 1024px) {
+        .emoji-pos-17, .emoji-pos-18, .emoji-pos-19, .emoji-pos-20,
+        .emoji-pos-21, .emoji-pos-22, .emoji-pos-23, .emoji-pos-24,
+        .emoji-pos-25, .emoji-pos-26 { display: none; }
+      }
+      @media (max-width: 768px) {
+        .emoji-pos-11, .emoji-pos-12, .emoji-pos-13, .emoji-pos-14,
+        .emoji-pos-15, .emoji-pos-16 { display: none; }
+      }
+
+      /* Respect reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        .floating-emojis .emoji,
+        .floating-emojis .emoji-floater { animation: none !important; }
+        .emoji-anchor { transform: none !important; transition: none !important; }
+      }
+
+      /* ============================================================
+         Markdown highlight.js theme — "Violet Mono"
+         Hand-rolled to extend the page's violet/slate palette into the
+         code block, so the highlighting reads as part of the design
+         rather than as a code block dropped into the page. Different
+         markdown tokens get different shades of violet plus slate/white;
+         no other hues. Specificity is just `.hljs-X` so this is the only
+         theme loaded — no upstream CSS to override.
+         ============================================================ */
+      .hljs { color: #f1f5f9; }                                              /* slate-100 base */
+      .hljs-section   { color: #ddd6fe; font-weight: 700; }                  /* violet-200 — headings */
+      .hljs-bullet    { color: #a78bfa; }                                    /* violet-400 — list markers */
+      .hljs-strong    { color: #c4b5fd; font-weight: 700; }                  /* violet-300 — bold */
+      .hljs-emphasis  { color: #cbd5e1; font-style: italic; }                /* slate-300 — italic */
+      .hljs-link      { color: #ddd6fe; text-decoration: underline; text-decoration-color: rgba(167,139,250,0.5); }
+      .hljs-string    { color: #a78bfa; }                                    /* violet-400 — link URLs / strings */
+      .hljs-symbol    { color: #c4b5fd; }
+      .hljs-code      { color: #c4b5fd; background: rgba(167,139,250,0.10); padding: 0 .25em; border-radius: 3px; }
+      .hljs-quote     { color: #94a3b8; font-style: italic; }                /* slate-400 — blockquotes */
+      .hljs-attr      { color: #8b5cf6; }                                    /* violet-500 */
+      .hljs-meta      { color: #94a3b8; }
+      .hljs-comment   { color: #94a3b8; font-style: italic; }
+      .hljs-keyword   { color: #c4b5fd; }
+      .hljs-built_in  { color: #ddd6fe; }
+      .hljs-title     { color: #ddd6fe; }
+      .hljs-number    { color: #a78bfa; }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19",
+          "react/jsx-runtime": "https://esm.sh/react@19/jsx-runtime",
+          "react-dom/client": "https://esm.sh/react-dom@19/client",
+          "react-hot-toast": "https://esm.sh/react-hot-toast@2?deps=react@19,react-dom@19",
+          "turndown": "https://esm.sh/turndown@7",
+          "turndown-plugin-gfm": "https://esm.sh/turndown-plugin-gfm@1",
+          "unified": "https://esm.sh/unified@11",
+          "rehype-parse": "https://esm.sh/rehype-parse@9",
+          "rehype-stringify": "https://esm.sh/rehype-stringify@10",
+          "unist-util-visit": "https://esm.sh/unist-util-visit@5",
+          "prettier": "https://esm.sh/prettier@3/standalone",
+          "prettier/plugins/markdown": "https://esm.sh/prettier@3/plugins/markdown"
+        }
+      }
+    </script>
+    <script type="module" src="https://esm.sh/tsx"></script>
+  </head>
+  <body class="bg-slate-950 text-slate-100 antialiased min-h-screen">
+    <div id="root"></div>
+
+    {% raw %}
+    <script type="text/babel" data-type="module">
+      import React, { useState, useRef, useEffect, useMemo } from "react"
+      import { createRoot } from "react-dom/client"
+      import toast, { Toaster } from "react-hot-toast"
+      import TurndownService from "turndown"
+      import { gfm } from "turndown-plugin-gfm"
+      import { unified } from "unified"
+      import rehypeParse from "rehype-parse"
+      import rehypeStringify from "rehype-stringify"
+      import { visit } from "unist-util-visit"
+      import * as prettier from "prettier"
+      import * as prettierMarkdown from "prettier/plugins/markdown"
+
+      const turndownService = new TurndownService({
+        headingStyle: "atx",
+        codeBlockStyle: "fenced",
+        bulletListMarker: "-",
+        emDelimiter: "*",
+        strongDelimiter: "**",
+        // Never preserve raw HTML in the output — strip the wrapper, keep inner content
+        keepReplacement: (content) => content,
+        // Fallback for elements with no matching rule
+        blankReplacement: (content, node) => (node.isBlock ? "\n\n" : ""),
+      })
+      turndownService.use(gfm)
+      // Strip noise that browsers/editors paste alongside content
+      turndownService.remove(["style", "script", "meta", "head", "title", "link"])
+
+      // === HTML preprocessing (rehype/unified pipeline) ===
+
+      /**
+       * Inject an empty <thead> into any <table> whose first <tr> would not
+       * qualify as a heading row by turndown-plugin-gfm's rules. Without this,
+       * headerless tables (e.g. partial pastes from Confluence/Notion) render
+       * as plain pipe-separated text instead of GFM tables.
+       */
+      function rehypeEnsureTableHeaders() {
+        return (tree) => {
+          visit(tree, { type: "element", tagName: "table" }, (table) => {
+            let firstRow = null
+            let firstRowParent = null
+            visit(table, { type: "element", tagName: "tr" }, (tr, _i, parent) => {
+              if (firstRow) return
+              firstRow = tr
+              firstRowParent = parent
+            })
+            if (!firstRow) return
+            if (firstRowParent && firstRowParent.tagName === "thead") return
+
+            const cells = firstRow.children.filter(
+              (c) => c.type === "element" && (c.tagName === "th" || c.tagName === "td")
+            )
+            if (cells.length === 0) return
+            if (cells.every((c) => c.tagName === "th")) return
+
+            table.children.unshift({
+              type: "element",
+              tagName: "thead",
+              properties: {},
+              children: [
+                {
+                  type: "element",
+                  tagName: "tr",
+                  properties: {},
+                  children: cells.map(() => ({
+                    type: "element",
+                    tagName: "th",
+                    properties: {},
+                    children: [],
+                  })),
+                },
+              ],
+            })
+          })
+        }
+      }
+
+      // Inline phrasing tags that survive intact inside table cells. Anything
+      // else (block, unknown, <br>) gets unwrapped during flattening. <br> is
+      // intentionally excluded despite being phrasing — turndown emits "  \n"
+      // for it, which would shatter the GFM table.
+      const INLINE_PHRASING_TAGS = new Set([
+        "a", "abbr", "b", "bdi", "bdo", "cite", "code", "data", "dfn", "em",
+        "i", "kbd", "mark", "q", "rp", "rt", "ruby", "s", "samp", "small",
+        "span", "strong", "sub", "sup", "time", "u", "var", "wbr",
+        "del", "ins", "img",
+      ])
+
+      // Recursively flatten a hast node intended for placement inside a
+      // table cell. Returns an array of nodes containing only text and
+      // inline-phrasing elements; any block descendant is unwrapped with a
+      // space text node on either side so adjacent unwrapped siblings
+      // don't smush together. Whitespace runs inside text nodes are
+      // collapsed to a single space.
+      function flattenCellNode(node) {
+        if (node.type === "text") {
+          return [{ type: "text", value: node.value.replace(/\s+/g, " ") }]
+        }
+        if (node.type === "element") {
+          const kids = node.children.flatMap(flattenCellNode)
+          if (INLINE_PHRASING_TAGS.has(node.tagName)) {
+            return [{ ...node, children: kids }]
+          }
+          return [{ type: "text", value: " " }, ...kids, { type: "text", value: " " }]
+        }
+        return []
+      }
+
+      /**
+       * Flatten the content of every <td>/<th> to inline-only. GFM tables
+       * require each row on a single line, so any block-level descendant of
+       * a cell (<p>, <div>, <br>, lists, nested tables, <pre>) would cause
+       * turndown to emit \n inside the cell and shatter the table. We
+       * unwrap those, separating their children with single spaces, and
+       * collapse runs of whitespace in text nodes to a single space.
+       *
+       * The allowlist preserves bold/italic/links/inline-code unchanged so
+       * the cell's formatting survives. Per the project decision tree:
+       * we replace newlines with spaces (no raw <br> in markdown), and
+       * accept the rare cost of flattening nested tables / pre-blocks
+       * uniformly rather than special-casing them.
+       */
+      function rehypeFlattenTableCells() {
+        return (tree) => {
+          visit(tree, { type: "element" }, (node) => {
+            if (node.tagName !== "td" && node.tagName !== "th") return
+
+            const flat = node.children.flatMap(flattenCellNode)
+
+            // Coalesce adjacent direct-child text nodes so the final
+            // whitespace pass can collapse runs spanning former unwrap
+            // boundaries (e.g. trailing space of one block + leading space
+            // of the next).
+            const coalesced = []
+            for (const child of flat) {
+              const last = coalesced[coalesced.length - 1]
+              if (child.type === "text" && last?.type === "text") {
+                last.value += child.value
+              } else {
+                coalesced.push(child)
+              }
+            }
+
+            // Collapse \s+ to single space; trim leading whitespace from
+            // the first text node and trailing whitespace from the last;
+            // drop any text node that becomes empty.
+            node.children = coalesced
+              .map((child, i, arr) => {
+                if (child.type !== "text") return child
+                let v = child.value.replace(/\s+/g, " ")
+                if (i === 0) v = v.replace(/^\s+/, "")
+                if (i === arr.length - 1) v = v.replace(/\s+$/, "")
+                return { type: "text", value: v }
+              })
+              .filter((child) => child.type !== "text" || child.value !== "")
+          })
+        }
+      }
+
+      const preprocessor = unified()
+        .use(rehypeParse, { fragment: true })
+        .use(rehypeEnsureTableHeaders)
+        .use(rehypeFlattenTableCells)
+        .use(rehypeStringify)
+
+      const preprocessHtml = (html) => String(preprocessor.processSync(html))
+      // === end preprocessing ===
+
+      // Prefix every line with markdown blockquote syntax. Empty lines become a
+      // bare ">" (no trailing space) so the blockquote stays contiguous in
+      // CommonMark/GFM renderers without leaving stray trailing whitespace.
+      const toBlockquote = (md) =>
+        md.split("\n").map((line) => (line ? `> ${line}` : ">")).join("\n")
+
+      // Three-layer purple glow text-shadow for the disco-poster title:
+      // light violet text with progressively darker, larger violet halos behind.
+      const TITLE_GLOW =
+        "[text-shadow:0_0_10px_color-mix(in_oklch,var(--color-violet-500)_70%,transparent),0_0_30px_color-mix(in_oklch,var(--color-violet-600)_55%,transparent),0_0_60px_color-mix(in_oklch,var(--color-violet-700)_45%,transparent)]"
+
+      // === Floating emoji background ===
+      // Apple-style emoji PNGs via emojicdn.elk.sh (URL-encoded codepoints).
+      const EMOJI_BALL   = "https://emojicdn.elk.sh/%F0%9F%AA%A9"   // 🪩 mirror ball
+      const EMOJI_DANCER = "https://emojicdn.elk.sh/%F0%9F%95%BA"   // 🕺 man dancing
+
+      // 26 hand-tuned positions copied from typer.space.
+      // - dx/dy: cursor-parallax magnitudes (positive = depth-amplitude).
+      //          Front rows have bigger values, back rows barely drift.
+      //          Direction is uniform: all emojis drift OPPOSITE to the cursor
+      //          (cursor right → emojis left; cursor down → emojis up). The
+      //          negation lives in the parallax calc so the data stays clean.
+      // - float: which infinite float keyframe (a-h) drives the slow drift
+      // - rot:   natural tilt for the emoji at this position; clamped to ±20° for dancers
+      // - kind:  "ball" 🪩 or "dancer" 🕺 — intermingled to break left/right and top/bottom
+      //          patterns. Slight bias: balls cluster toward the top (the disco "ceiling"),
+      //          dancers cluster toward the bottom (the dance "floor"), but plenty mixed.
+      // Sizes / opacity / blur / glow live in the .emoji-pos-N CSS rules.
+      const FLOATING_EMOJIS = [
+        { dx: 200, dy: 140, float: "a", rot: -12,  kind: "ball"   },
+        { dx: 210, dy:  50, float: "b", rot:  18,  kind: "ball"   },
+        { dx: 180, dy: 160, float: "f", rot:  15,  kind: "dancer" },
+        { dx: 170, dy: 140, float: "g", rot: -15,  kind: "dancer" },
+        { dx: 120, dy:  80, float: "c", rot:  18,  kind: "dancer" },
+        { dx: 130, dy: 100, float: "d", rot: -45,  kind: "ball"   },
+        { dx: 110, dy:  50, float: "h", rot:  12,  kind: "dancer" },
+        { dx: 115, dy:  70, float: "e", rot:  -8,  kind: "ball"   },
+        { dx:  85, dy: 110, float: "a", rot:  25,  kind: "ball"   },
+        { dx:  95, dy:  60, float: "f", rot: -18,  kind: "dancer" },
+        { dx: 140, dy:  90, float: "b", rot:  160, kind: "ball"   },
+        { dx: 100, dy: 110, float: "g", rot: -10,  kind: "dancer" },
+        { dx:  55, dy:  50, float: "c", rot:   8,  kind: "dancer" },
+        { dx:  50, dy:  60, float: "d", rot: -120, kind: "ball"   },
+        { dx:  60, dy:  55, float: "h", rot:  55,  kind: "ball"   },
+        { dx:  55, dy:  45, float: "e", rot: -15,  kind: "dancer" },
+        { dx:  45, dy:  65, float: "f", rot:  135, kind: "ball"   },
+        { dx:  48, dy:  40, float: "a", rot: -12,  kind: "dancer" },
+        { dx:  38, dy:  60, float: "g", rot:  200, kind: "ball"   },
+        { dx:  42, dy:  55, float: "b", rot: -45,  kind: "ball"   },
+        { dx:  50, dy:  35, float: "h", rot:  16,  kind: "dancer" },
+        { dx:  35, dy:  58, float: "d", rot: -100, kind: "ball"   },
+        { dx:  30, dy:  45, float: "c", rot:  310, kind: "ball"   },
+        { dx:  40, dy:  35, float: "e", rot: -20,  kind: "dancer" },
+        { dx:  32, dy:  28, float: "f", rot:  -8,  kind: "dancer" },
+        { dx:  25, dy:  32, float: "g", rot: -10,  kind: "dancer" },
+
+        // Off-screen corner emojis. Larger dx/dy than the in-view foreground (≥280)
+        // ensures they reliably swing into view at full cursor extreme, filling the
+        // void left by in-view foreground emojis drifting away from the cursor.
+        { dx: 280, dy: 180, float: "c", rot: -25, kind: "ball"   },  // 27 outside top-left
+        { dx: 280, dy: 180, float: "e", rot:  17, kind: "dancer" },  // 28 outside top-right
+        { dx: 280, dy: 180, float: "d", rot: -15, kind: "dancer" },  // 29 outside bottom-left
+        { dx: 280, dy: 180, float: "h", rot:  75, kind: "ball"   },  // 30 outside bottom-right
+
+        // Off-screen edge emojis (mid-edges). Asymmetric drift: top/bottom edge
+        // emojis drift mostly vertically (dy >> dx), left/right mostly horizontally
+        // (dx >> dy). They swing in along their respective edge as the cursor moves
+        // toward that side.
+        { dx: 100, dy: 220, float: "a", rot:  20,  kind: "dancer" },  // 31 outside top, left-ish
+        { dx: 100, dy: 220, float: "f", rot:  130, kind: "ball"   },  // 32 outside top, right-ish
+        { dx: 100, dy: 220, float: "b", rot:  220, kind: "ball"   },  // 33 outside bottom, left-ish
+        { dx: 100, dy: 220, float: "g", rot: -18,  kind: "dancer" },  // 34 outside bottom, right-ish
+        { dx: 220, dy: 100, float: "h", rot:  35,  kind: "ball"   },  // 35 outside left, top-ish
+        { dx: 220, dy: 100, float: "c", rot:  -8,  kind: "dancer" },  // 36 outside left, bottom-ish
+        { dx: 220, dy: 100, float: "d", rot: -12,  kind: "dancer" },  // 37 outside right, top-ish
+        { dx: 220, dy: 100, float: "e", rot:  290, kind: "ball"   },  // 38 outside right, bottom-ish
+      ]
+
+      // Three nested DOM layers each carry one transform so the motions compose without
+      // fighting in the cascade: anchor (parallax via inline style) > floater (CSS float
+      // keyframe) > emoji (CSS entrance keyframe + inline rotation + opacity/glow).
+      function FloatingEmojis() {
+        const anchorsRef = useRef([])
+
+        useEffect(() => {
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
+          const targets = FLOATING_EMOJIS.map(() => ({ x: 0, y: 0 }))
+          const current = FLOATING_EMOJIS.map(() => ({ x: 0, y: 0 }))
+          let raf = 0
+          // Parallax wake-up: stay dormant until the entrance animation finishes
+          // (the last emoji completes its fly-in at ~1.075s = 0.375s delay + 0.7s
+          // duration), then ramp the parallax intensity from 0 → 1 over PARALLAX_RAMP_MS.
+          // This prevents a "shoot" when the cursor was already in a corner on paste.
+          const PARALLAX_DELAY_MS = 1100
+          const PARALLAX_RAMP_MS = 1000
+          // Global dampener applied on top of per-emoji dx/dy. The original
+          // per-emoji magnitudes (up to 280px for the off-screen reserves)
+          // gave too lively a sway; scaling them down keeps the depth-tier
+          // ratios intact while toning the overall motion down.
+          const PARALLAX_SCALE = 0.45
+          const startMs = performance.now()
+          let cursorNx = 0
+          let cursorNy = 0
+
+          const onMove = (e) => {
+            const cx = window.innerWidth / 2
+            const cy = window.innerHeight / 2
+            cursorNx = (e.clientX - cx) / cx
+            cursorNy = (e.clientY - cy) / cy
+          }
+
+          // Spring-smoothed follow: each frame nudges the current displacement
+          // 8% of the way toward the cursor target. Reads as inertial swaying.
+          const tick = () => {
+            const elapsed = performance.now() - startMs
+            // easeInOutCubic from 0 → 1 over the ramp window
+            const tRaw = (elapsed - PARALLAX_DELAY_MS) / PARALLAX_RAMP_MS
+            const t = Math.max(0, Math.min(1, tRaw))
+            const intensity = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+
+            // Uniform "world rotates around cursor" parallax: every emoji drifts
+            // OPPOSITE to the cursor (cursor right → emojis left, cursor down →
+            // emojis up). Magnitude scales with depth tier via dx/dy and is
+            // multiplied by the wake-up intensity.
+            for (let i = 0; i < FLOATING_EMOJIS.length; i++) {
+              const p = FLOATING_EMOJIS[i]
+              targets[i].x = -cursorNx * p.dx * intensity * PARALLAX_SCALE
+              targets[i].y = -cursorNy * p.dy * intensity * PARALLAX_SCALE
+
+              const el = anchorsRef.current[i]
+              if (!el) continue
+              current[i].x += (targets[i].x - current[i].x) * 0.08
+              current[i].y += (targets[i].y - current[i].y) * 0.08
+              el.style.transform = `translate3d(${current[i].x.toFixed(2)}px, ${current[i].y.toFixed(2)}px, 0)`
+            }
+            raf = requestAnimationFrame(tick)
+          }
+
+          window.addEventListener("mousemove", onMove, { passive: true })
+          raf = requestAnimationFrame(tick)
+
+          return () => {
+            window.removeEventListener("mousemove", onMove)
+            cancelAnimationFrame(raf)
+          }
+        }, [])
+
+        return (
+          <div className="floating-emojis" aria-hidden="true">
+            {FLOATING_EMOJIS.map((p, i) => {
+              const idx = i + 1
+              // Off-screen periphery emojis: corners (27-30) use lg tier for
+              // impact, mid-edges (31-38) use md tier — slightly less dominant
+              // since they're seen more often as cursor sweeps toward an edge.
+              // None of them get a numbered entrance keyframe — they live
+              // off-screen during the entrance window anyway.
+              const tier =
+                idx <= 4  ? "lg" :
+                idx <= 12 ? "md" :
+                idx <= 26 ? "sm" :
+                idx <= 30 ? "lg" :
+                            "md"
+              const enterClass = idx <= 26 ? `emoji-enter-${idx}` : ""
+              const src = p.kind === "ball" ? EMOJI_BALL : EMOJI_DANCER
+              // Dancers (🕺) are figurative — clamp rotation to ±20° so they stay upright.
+              // Balls (🪩) are spheres — any rotation works.
+              const rot = p.kind === "dancer" ? Math.max(-20, Math.min(20, p.rot)) : p.rot
+              return (
+                <div
+                  key={idx}
+                  ref={(el) => (anchorsRef.current[i] = el)}
+                  className={`emoji-anchor emoji-pos-${idx} emoji-tier-${tier}`}
+                >
+                  <span className={`emoji-floater emoji-float-${p.float}`}>
+                    <span className={`emoji ${enterClass}`} style={{ rotate: `${rot}deg` }}>
+                      <img className="emoji-img" src={src} alt="" loading="eager" decoding="async" />
+                    </span>
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )
+      }
+      // === end floating emoji background ===
+
+      // Keyboard shortcut glyph: "⌘ + v" or "ctrl + v". `inline-flex
+      // items-baseline` makes the wrapper baseline-align with surrounding
+      // prose so it can sit inline inside a sentence. Vertical nudges on `+`
+      // and `v` align them to the cap-height centerline of ⌘/letters (the
+      // bare `+` sits on the math axis, which reads as too low next to those
+      // glyphs). Nudges are in `em` so they scale with the inherited font
+      // size — works equally at the splash headline size and inline at body
+      // size. Used twice: as the standalone pre-hover headline, and at the
+      // tail of the on-hover description sentence.
+      function KbdHint({ mod }) {
+        return (
+          <span className="font-mono inline-flex items-baseline gap-[0.4em]">
+            <span>{mod}</span>
+            <span className="-translate-y-[0.06em]">+</span>
+            <span className="text-[0.95em] -translate-y-[0.12em]">v</span>
+          </span>
+        )
+      }
+
+      // Four-point sparkle glint, like the ones flanking "DISCO NIGHT" on the
+      // reference poster. Two overlapping diamonds (orthogonal beams + shorter
+      // 45°-rotated accents) inside a 100×100 viewBox. Color comes from `fill`,
+      // halo from a stacked drop-shadow filter.
+      function Sparkle({ className, glowColor = "rgba(255,255,255,0.65)" }) {
+        return (
+          <svg
+            className={className}
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+            fill="white"
+            style={{
+              filter: `drop-shadow(0 0 4px ${glowColor}) drop-shadow(0 0 14px ${glowColor})`,
+            }}
+          >
+            {/* Long orthogonal beams — top, right, bottom, left */}
+            <polygon points="50,0 54,46 100,50 54,54 50,100 46,54 0,50 46,46" />
+            {/* Shorter diagonal accents at 45° */}
+            <polygon
+              points="50,18 52,48 82,50 52,52 50,82 48,52 18,50 48,48"
+              transform="rotate(45 50 50)"
+            />
+          </svg>
+        )
+      }
+
+      function App() {
+        const [markdown, setMarkdown] = useState("")
+        // The party (emoji background + markdown card + footer) only starts after
+        // a successful rich-text paste. Pre-paste, the page is just the H1 + a
+        // keyboard-shortcut hint, centered in the viewport.
+        const [partyStarted, setPartyStarted] = useState(false)
+        const pasteRef = useRef(null)
+
+        // Platform-aware kbd modifier. ⌘ on Mac, ctrl elsewhere. Falls back
+        // to ctrl when navigator is unavailable (SSR-safe even though we
+        // don't SSR). Rendered via the <KbdHint /> component above.
+        const kbdMod = useMemo(() => {
+          if (typeof navigator === "undefined") return "ctrl"
+          const platform = navigator.platform || navigator.userAgent || ""
+          return /Mac|iPhone|iPad|iPod/.test(platform) ? "⌘" : "ctrl"
+        }, [])
+
+        // Keep the hidden paste-catcher focused at all times so cmd/ctrl+V always
+        // fires a paste event. If the user clicks anywhere (including the Copy
+        // button), we refocus on the next tick. Text selection inside the
+        // markdown card still works because selection is preserved across
+        // focus changes.
+        useEffect(() => {
+          pasteRef.current?.focus({ preventScroll: true })
+          const refocus = () => {
+            if (document.activeElement !== pasteRef.current) {
+              pasteRef.current?.focus({ preventScroll: true })
+            }
+          }
+          document.addEventListener("click", refocus)
+          return () => document.removeEventListener("click", refocus)
+        }, [])
+
+        const highlighted = useMemo(
+          () =>
+            markdown
+              ? window.hljs.highlight(markdown, { language: "markdown", ignoreIllegals: true }).value
+              : "",
+          [markdown]
+        )
+
+        const handlePaste = async (e) => {
+          e.preventDefault()
+          const html = e.clipboardData.getData("text/html")
+          if (!html) {
+            toast.error("No rich text on clipboard — copy from a browser, doc, or email.")
+            return
+          }
+          const raw = turndownService.turndown(preprocessHtml(html))
+          // Prettier normalises the markdown (collapses paragraphs, aligns tables,
+          // standardises list indentation). On failure (rare edge cases in the
+          // markdown parser) silently fall back to the raw turndown output —
+          // the user pasted valid rich text and shouldn't see an internal warning.
+          const formatted = await prettier
+            .format(raw, {
+              parser: "markdown",
+              plugins: [prettierMarkdown],
+              proseWrap: "never",
+              embeddedLanguageFormatting: "off",
+            })
+            .catch(() => raw)
+          // Prettier appends a trailing newline; trim it so the in-page <pre>
+          // doesn't show a blank tail line and the blockquote helper doesn't
+          // emit a stray final ">".
+          const md = formatted.trim()
+          if (!md) {
+            toast.error("Couldn't extract markdown from that.")
+            return
+          }
+          setMarkdown(md)
+          // Successful conversion → drop the beat. Splash → party (one-way).
+          // Subsequent pastes after this point just replace the markdown content.
+          setPartyStarted(true)
+          toast.success("Converted!")
+          if (pasteRef.current) pasteRef.current.innerHTML = ""
+        }
+
+        const handleBeforeInput = (e) => {
+          if (e.inputType !== "insertFromPaste") {
+            e.preventDefault()
+          }
+        }
+
+        const handleCopyText = async (text, successMessage) => {
+          try {
+            await navigator.clipboard.writeText(text)
+            toast.success(successMessage)
+          } catch {
+            toast.error("Couldn't copy — try selecting the text manually.")
+          }
+        }
+
+        const handleCopy = () => {
+          if (!markdown) return
+          handleCopyText(markdown, "Copied!")
+        }
+
+        const handleCopyQuote = () => {
+          if (!markdown) return
+          handleCopyText(toBlockquote(markdown), "Copied as blockquote!")
+        }
+
+        // Hidden 1×1px contentEditable, off-screen, focused at all times. Catches
+        // ⌘V/Ctrl+V regardless of where focus appears to be on the visible page.
+        const pasteCatcher = (
+          <div
+            ref={pasteRef}
+            contentEditable
+            suppressContentEditableWarning
+            onPaste={handlePaste}
+            onBeforeInput={handleBeforeInput}
+            aria-hidden="true"
+            className="fixed top-0 left-0 w-px h-px overflow-hidden opacity-0 outline-none"
+            style={{ caretColor: "transparent" }}
+          />
+        )
+
+        // The H1 is identical in both states — only its container width changes,
+        // which (via container queries on `text-[Ncqw]`) scales the type.
+        const titleH1 = (
+          <h1
+            className={`relative font-display text-violet-200 leading-[0.95] select-none text-center ${TITLE_GLOW}`}
+            aria-label="Get Down"
+          >
+            <span aria-hidden="true" className="block text-[35cqw]">GET</span>
+            <span aria-hidden="true" className="block text-[26cqw]">DOWN</span>
+            <Sparkle className="absolute -top-3 -left-2 sm:-top-4 sm:-left-3 w-12 h-12 sm:w-14 sm:h-14" />
+            <Sparkle className="absolute -bottom-3 -right-2 sm:-bottom-4 sm:-right-3 w-8 h-8 sm:w-10 sm:h-10" />
+          </h1>
+        )
+
+        const toaster = (
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: "#1e293b",
+                color: "#f1f5f9",
+                border: "1px solid #334155",
+              },
+            }}
+          />
+        )
+
+        // ============ Pre-paste: splash ============
+        // Only the H1 (in a wide `max-w-3xl` container so it's the biggest it can
+        // be) and the keyboard hint, centered in the viewport. No emoji
+        // background, no markdown card, no footer.
+        if (!partyStarted) {
+          return (
+            <>
+              <main className="relative flex min-h-screen items-center justify-center px-4">
+                <div className="w-full max-w-3xl">
+                  <header className="@container relative w-full">
+                    {titleH1}
+                  </header>
+                  {/* Keyboard hint with hover-reveal description.
+                      Two children grid-stacked in the same cell ([grid-area:1/1]):
+                      the description sizes the cell (it's the larger of the
+                      two), the collapsed shortcut overlays it centered. On
+                      hover (group-hover), opacities swap with a 150ms crossfade.
+                      On touch / no-hover devices (pointer-coarse), the
+                      description is shown by default and the collapsed
+                      shortcut hidden — touch users have no way to hover and
+                      need the explanation up front. The collapsed state is
+                      aria-hidden so screen readers only get the full
+                      description sentence (which itself ends with the
+                      shortcut, avoiding duplication). */}
+                  <div className="group mt-12 mx-auto grid max-w-[60ch] place-items-center">
+                    <p
+                      aria-hidden="true"
+                      className="[grid-area:1/1] font-mono text-slate-400 text-2xl sm:text-3xl tracking-wide leading-none transition-opacity duration-150 group-hover:opacity-0 pointer-coarse:opacity-0"
+                    >
+                      <KbdHint mod={kbdMod} />
+                    </p>
+                    <p className="[grid-area:1/1] text-slate-400 text-center text-balance opacity-0 transition-opacity duration-150 group-hover:opacity-100 pointer-coarse:opacity-100">
+                      Paste rich text to convert it to markdown. Works with Google Docs, Notion, browser pages, email, and more — <KbdHint mod={kbdMod} />
+                    </p>
+                  </div>
+                </div>
+              </main>
+              {pasteCatcher}
+              {toaster}
+            </>
+          )
+        }
+
+        // ============ Post-paste: party ============
+        // Fixed-height (`h-screen`) flex column. H1 sticks to the top, footer
+        // sticks to the bottom, markdown card fills the middle and scrolls
+        // internally so the disco balls and dancers stay pinned to the viewport.
+        // FloatingEmojis only mounts here, so its existing fly-in entrance
+        // keyframes play fresh as the reveal animation.
+        return (
+          <>
+            <main className="relative flex flex-col h-screen px-4">
+              <FloatingEmojis />
+              <div className="relative z-10 mx-auto w-full max-w-xl flex flex-col flex-1 min-h-0 py-4">
+                {/* H1 sticks to top, in a narrower container so it's much smaller */}
+                <header className="@container shrink-0 w-full max-w-md mx-auto relative">
+                  {titleH1}
+                </header>
+
+                {/* Markdown card fills remaining vertical space; <pre> scrolls inside.
+                    Frosted-glass: semi-transparent slate-950 over the floating
+                    emojis, blurred backdrop, white/10 edge for the lit-glass rim. */}
+                <section
+                  aria-label="Markdown output"
+                  className="relative flex-1 min-h-0 my-4 flex flex-col overflow-hidden rounded-xl border border-white/10 bg-slate-950/60 backdrop-blur-md"
+                >
+                  <pre className="absolute inset-0 overflow-auto scrollbar-none p-5 text-sm whitespace-pre-wrap break-words font-mono leading-relaxed">
+                    <code
+                      className="language-markdown hljs"
+                      dangerouslySetInnerHTML={{ __html: highlighted }}
+                    />
+                  </pre>
+                  {/* Two-segment pill: "Copy as blockquote" (left) + plain "Copy" (right).
+                      Outer container clips inner button hover backgrounds to the rounded
+                      pill shape via overflow-hidden. Inner buttons are rectangular; the
+                      divider is a left border on the right segment. */}
+                  <div className="absolute top-2 right-2 flex overflow-hidden rounded-full border border-white/10 bg-slate-800/80 backdrop-blur-md text-slate-100">
+                    <button
+                      onClick={handleCopyQuote}
+                      aria-label="Copy as blockquote"
+                      title="Copy as blockquote"
+                      className="flex items-center gap-1 px-2.5 py-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
+                    >
+                      <span className="font-semibold text-base leading-none">{">"}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="size-4"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={handleCopy}
+                      aria-label="Copy markdown"
+                      title="Copy"
+                      className="border-l border-white/10 p-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="size-4"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </section>
+
+                <footer className="shrink-0 px-3 text-xs text-slate-400 grid grid-cols-2 gap-x-4 gap-y-1">
+                  <p>
+                    Made by{" "}
+                    <a href="/" className="no-underline hover:text-slate-300">
+                      Kieran
+                    </a>
+                  </p>
+                  <p className="text-right">
+                    <a href="/tools/" className="no-underline hover:text-slate-300">
+                      ← All tools
+                    </a>
+                  </p>
+                </footer>
+              </div>
+            </main>
+            {pasteCatcher}
+            {toaster}
+          </>
+        )
+      }
+
+      const root = createRoot(document.getElementById("root"))
+      root.render(<App />)
+    </script>
+    {% endraw %}
+  </body>
+</html>
