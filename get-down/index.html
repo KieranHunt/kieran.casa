@@ -724,6 +724,25 @@ permalink: /get-down/
       }
       // === end floating emoji background ===
 
+      // Keyboard shortcut glyph: "⌘ + v" or "ctrl + v". `inline-flex
+      // items-baseline` makes the wrapper baseline-align with surrounding
+      // prose so it can sit inline inside a sentence. Vertical nudges on `+`
+      // and `v` align them to the cap-height centerline of ⌘/letters (the
+      // bare `+` sits on the math axis, which reads as too low next to those
+      // glyphs). Nudges are in `em` so they scale with the inherited font
+      // size — works equally at the splash headline size and inline at body
+      // size. Used twice: as the standalone pre-hover headline, and at the
+      // tail of the on-hover description sentence.
+      function KbdHint({ mod }) {
+        return (
+          <span className="font-mono inline-flex items-baseline gap-[0.4em]">
+            <span>{mod}</span>
+            <span className="-translate-y-[0.06em]">+</span>
+            <span className="text-[0.95em] -translate-y-[0.12em]">v</span>
+          </span>
+        )
+      }
+
       // Four-point sparkle glint, like the ones flanking "DISCO NIGHT" on the
       // reference poster. Two overlapping diamonds (orthogonal beams + shorter
       // 45°-rotated accents) inside a 100×100 viewBox. Color comes from `fill`,
@@ -760,10 +779,7 @@ permalink: /get-down/
 
         // Platform-aware kbd modifier. ⌘ on Mac, ctrl elsewhere. Falls back
         // to ctrl when navigator is unavailable (SSR-safe even though we
-        // don't SSR). The full hint is laid out in JSX below — splitting
-        // into spans lets us nudge the "+" glyph vertically so it lines up
-        // with the cap-height centerline of ⌘/letters (the bare "+" sits
-        // on the math axis, which reads as too low next to those glyphs).
+        // don't SSR). Rendered via the <KbdHint /> component above.
         const kbdMod = useMemo(() => {
           if (typeof navigator === "undefined") return "ctrl"
           const platform = navigator.platform || navigator.userAgent || ""
@@ -909,11 +925,29 @@ permalink: /get-down/
                   <header className="@container relative w-full">
                     {titleH1}
                   </header>
-                  <p className="mt-12 flex items-baseline justify-center gap-2 font-mono text-slate-400 text-2xl sm:text-3xl tracking-wide leading-none">
-                    <span>{kbdMod}</span>
-                    <span className="-translate-y-[0.06em]">+</span>
-                    <span className="text-[0.95em] -translate-y-[0.12em]">v</span>
-                  </p>
+                  {/* Keyboard hint with hover-reveal description.
+                      Two children grid-stacked in the same cell ([grid-area:1/1]):
+                      the description sizes the cell (it's the larger of the
+                      two), the collapsed shortcut overlays it centered. On
+                      hover (group-hover), opacities swap with a 150ms crossfade.
+                      On touch / no-hover devices (pointer-coarse), the
+                      description is shown by default and the collapsed
+                      shortcut hidden — touch users have no way to hover and
+                      need the explanation up front. The collapsed state is
+                      aria-hidden so screen readers only get the full
+                      description sentence (which itself ends with the
+                      shortcut, avoiding duplication). */}
+                  <div className="group mt-12 mx-auto grid max-w-[60ch] place-items-center">
+                    <p
+                      aria-hidden="true"
+                      className="[grid-area:1/1] font-mono text-slate-400 text-2xl sm:text-3xl tracking-wide leading-none transition-opacity duration-150 group-hover:opacity-0 pointer-coarse:opacity-0"
+                    >
+                      <KbdHint mod={kbdMod} />
+                    </p>
+                    <p className="[grid-area:1/1] text-slate-400 text-center text-balance opacity-0 transition-opacity duration-150 group-hover:opacity-100 pointer-coarse:opacity-100">
+                      Paste rich text to convert it to markdown. Works with Google Docs, Notion, browser pages, email, and more — <KbdHint mod={kbdMod} />
+                    </p>
+                  </div>
                 </div>
               </main>
               {pasteCatcher}
