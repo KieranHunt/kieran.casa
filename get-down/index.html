@@ -268,32 +268,36 @@ permalink: /get-down/
         100% { opacity: 1; transform: scale(1)   translate3d(0, 0, 0); }
       }
       .floating-emojis .emoji { animation-fill-mode: both; }
-      .emoji-enter-1  { --enter-x:  80px; --enter-y:  50px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.86s  1 normal both running emoji-enter; }
-      .emoji-enter-2  { --enter-x: -80px; --enter-y:  50px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.875s 1 normal both running emoji-enter; }
-      .emoji-enter-3  { --enter-x:  60px; --enter-y: -50px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.890s 1 normal both running emoji-enter; }
-      .emoji-enter-4  { --enter-x: -60px; --enter-y: -40px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.905s 1 normal both running emoji-enter; }
-      .emoji-enter-5  { --enter-x:  40px; --enter-y:  32px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.920s 1 normal both running emoji-enter; }
-      .emoji-enter-6  { --enter-x: -32px; --enter-y:  24px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.935s 1 normal both running emoji-enter; }
-      .emoji-enter-7  { --enter-x:  32px; --enter-y: -24px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.950s 1 normal both running emoji-enter; }
-      .emoji-enter-8  { --enter-x: -24px; --enter-y: -20px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.965s 1 normal both running emoji-enter; }
-      .emoji-enter-9  { --enter-x:  20px; --enter-y:  28px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.980s 1 normal both running emoji-enter; }
-      .emoji-enter-10 { --enter-x: -28px; --enter-y:  16px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.995s 1 normal both running emoji-enter; }
-      .emoji-enter-11 { --enter-x:  24px; --enter-y: -16px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.010s 1 normal both running emoji-enter; }
-      .emoji-enter-12 { --enter-x: -20px; --enter-y: -24px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.025s 1 normal both running emoji-enter; }
-      .emoji-enter-13 { --enter-x:  12px; --enter-y:  15px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.040s 1 normal both running emoji-enter; }
-      .emoji-enter-14 { --enter-x: -12px; --enter-y:   9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.055s 1 normal both running emoji-enter; }
-      .emoji-enter-15 { --enter-x:   9px; --enter-y: -12px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.070s 1 normal both running emoji-enter; }
-      .emoji-enter-16 { --enter-x:  -9px; --enter-y:  -9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.085s 1 normal both running emoji-enter; }
-      .emoji-enter-17 { --enter-x:   6px; --enter-y:  12px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.100s 1 normal both running emoji-enter; }
-      .emoji-enter-18 { --enter-x:  -9px; --enter-y:   6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.115s 1 normal both running emoji-enter; }
-      .emoji-enter-19 { --enter-x:   6px; --enter-y:  -9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.130s 1 normal both running emoji-enter; }
-      .emoji-enter-20 { --enter-x:  -6px; --enter-y:   9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.145s 1 normal both running emoji-enter; }
-      .emoji-enter-21 { --enter-x:   6px; --enter-y:  -6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.160s 1 normal both running emoji-enter; }
-      .emoji-enter-22 { --enter-x:  -6px; --enter-y:  -6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.175s 1 normal both running emoji-enter; }
-      .emoji-enter-23 { --enter-x:   3px; --enter-y:   6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.190s 1 normal both running emoji-enter; }
-      .emoji-enter-24 { --enter-x:  -3px; --enter-y:  -6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.205s 1 normal both running emoji-enter; }
-      .emoji-enter-25 { --enter-x:   3px; --enter-y:   3px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.220s 1 normal both running emoji-enter; }
-      .emoji-enter-26 { --enter-x:  -3px; --enter-y:  -3px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 1.235s 1 normal both running emoji-enter; }
+      /* The cascade kicks off the moment <FloatingEmojis> mounts (i.e. on
+         successful paste), so delays start at 0s. The 15ms-per-tier stagger
+         is preserved — it's what gives the entrance its disco-poster shimmer
+         rather than reading as a single hard pop. */
+      .emoji-enter-1  { --enter-x:  80px; --enter-y:  50px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0s     1 normal both running emoji-enter; }
+      .emoji-enter-2  { --enter-x: -80px; --enter-y:  50px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.015s 1 normal both running emoji-enter; }
+      .emoji-enter-3  { --enter-x:  60px; --enter-y: -50px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.030s 1 normal both running emoji-enter; }
+      .emoji-enter-4  { --enter-x: -60px; --enter-y: -40px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.045s 1 normal both running emoji-enter; }
+      .emoji-enter-5  { --enter-x:  40px; --enter-y:  32px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.060s 1 normal both running emoji-enter; }
+      .emoji-enter-6  { --enter-x: -32px; --enter-y:  24px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.075s 1 normal both running emoji-enter; }
+      .emoji-enter-7  { --enter-x:  32px; --enter-y: -24px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.090s 1 normal both running emoji-enter; }
+      .emoji-enter-8  { --enter-x: -24px; --enter-y: -20px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.105s 1 normal both running emoji-enter; }
+      .emoji-enter-9  { --enter-x:  20px; --enter-y:  28px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.120s 1 normal both running emoji-enter; }
+      .emoji-enter-10 { --enter-x: -28px; --enter-y:  16px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.135s 1 normal both running emoji-enter; }
+      .emoji-enter-11 { --enter-x:  24px; --enter-y: -16px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.150s 1 normal both running emoji-enter; }
+      .emoji-enter-12 { --enter-x: -20px; --enter-y: -24px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.165s 1 normal both running emoji-enter; }
+      .emoji-enter-13 { --enter-x:  12px; --enter-y:  15px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.180s 1 normal both running emoji-enter; }
+      .emoji-enter-14 { --enter-x: -12px; --enter-y:   9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.195s 1 normal both running emoji-enter; }
+      .emoji-enter-15 { --enter-x:   9px; --enter-y: -12px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.210s 1 normal both running emoji-enter; }
+      .emoji-enter-16 { --enter-x:  -9px; --enter-y:  -9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.225s 1 normal both running emoji-enter; }
+      .emoji-enter-17 { --enter-x:   6px; --enter-y:  12px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.240s 1 normal both running emoji-enter; }
+      .emoji-enter-18 { --enter-x:  -9px; --enter-y:   6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.255s 1 normal both running emoji-enter; }
+      .emoji-enter-19 { --enter-x:   6px; --enter-y:  -9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.270s 1 normal both running emoji-enter; }
+      .emoji-enter-20 { --enter-x:  -6px; --enter-y:   9px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.285s 1 normal both running emoji-enter; }
+      .emoji-enter-21 { --enter-x:   6px; --enter-y:  -6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.300s 1 normal both running emoji-enter; }
+      .emoji-enter-22 { --enter-x:  -6px; --enter-y:  -6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.315s 1 normal both running emoji-enter; }
+      .emoji-enter-23 { --enter-x:   3px; --enter-y:   6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.330s 1 normal both running emoji-enter; }
+      .emoji-enter-24 { --enter-x:  -3px; --enter-y:  -6px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.345s 1 normal both running emoji-enter; }
+      .emoji-enter-25 { --enter-x:   3px; --enter-y:   3px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.360s 1 normal both running emoji-enter; }
+      .emoji-enter-26 { --enter-x:  -3px; --enter-y:  -3px; animation: 0.7s cubic-bezier(0.16,1,0.3,1) 0.375s 1 normal both running emoji-enter; }
 
       /* Responsive: hide back-row emojis progressively at smaller viewports */
       @media (max-width: 1024px) {
@@ -624,11 +628,16 @@ permalink: /get-down/
           const current = FLOATING_EMOJIS.map(() => ({ x: 0, y: 0 }))
           let raf = 0
           // Parallax wake-up: stay dormant until the entrance animation finishes
-          // (the last keycap completes its fly-in at ~1.94s = 1.235s delay + 0.7s
+          // (the last emoji completes its fly-in at ~1.075s = 0.375s delay + 0.7s
           // duration), then ramp the parallax intensity from 0 → 1 over PARALLAX_RAMP_MS.
-          // This prevents a "shoot" when the cursor was already in a corner on load.
-          const PARALLAX_DELAY_MS = 2000
+          // This prevents a "shoot" when the cursor was already in a corner on paste.
+          const PARALLAX_DELAY_MS = 1100
           const PARALLAX_RAMP_MS = 1000
+          // Global dampener applied on top of per-emoji dx/dy. The original
+          // per-emoji magnitudes (up to 280px for the off-screen reserves)
+          // gave too lively a sway; scaling them down keeps the depth-tier
+          // ratios intact while toning the overall motion down.
+          const PARALLAX_SCALE = 0.45
           const startMs = performance.now()
           let cursorNx = 0
           let cursorNy = 0
@@ -655,8 +664,8 @@ permalink: /get-down/
             // multiplied by the wake-up intensity.
             for (let i = 0; i < FLOATING_EMOJIS.length; i++) {
               const p = FLOATING_EMOJIS[i]
-              targets[i].x = -cursorNx * p.dx * intensity
-              targets[i].y = -cursorNy * p.dy * intensity
+              targets[i].x = -cursorNx * p.dx * intensity * PARALLAX_SCALE
+              targets[i].y = -cursorNy * p.dy * intensity * PARALLAX_SCALE
 
               const el = anchorsRef.current[i]
               if (!el) continue
