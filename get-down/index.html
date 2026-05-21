@@ -7,7 +7,7 @@ permalink: /get-down/
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Get Down ∷ rich text to markdown</title>
+    <title>Get Down 🕺</title>
     <meta
       name="description"
       content="Convert pasted rich text from your browser, docs, or email into clean Markdown — preserving headings, lists, links, and tables."
@@ -406,75 +406,51 @@ permalink: /get-down/
        * as plain pipe-separated text instead of GFM tables.
        */
       function rehypeEnsureTableHeaders() {
+        // Pure depth-first search for the first <tr> descendant of `node`.
+        // Returns the matching row and its immediate parent, or null.
+        const findFirstRow = (node, parent = null) =>
+          node.type === "element" && node.tagName === "tr"
+            ? { row: node, parent }
+            : (node.children ?? []).reduce(
+                (found, child) => found ?? findFirstRow(child, node),
+                null,
+              )
+
+        const isCell = (node) =>
+          node.type === "element" && (node.tagName === "th" || node.tagName === "td")
+
+        const emptyTh = () => ({
+          type: "element",
+          tagName: "th",
+          properties: {},
+          children: [],
+        })
+
+        const buildThead = (cells) => ({
+          type: "element",
+          tagName: "thead",
+          properties: {},
+          children: [
+            {
+              type: "element",
+              tagName: "tr",
+              properties: {},
+              children: cells.map(emptyTh),
+            },
+          ],
+        })
+
         return (tree) => {
           visit(tree, { type: "element", tagName: "table" }, (table) => {
-            let firstRow = null
-            let firstRowParent = null
-            visit(table, { type: "element", tagName: "tr" }, (tr, _i, parent) => {
-              if (firstRow) return
-              firstRow = tr
-              firstRowParent = parent
-            })
-            if (!firstRow) return
-            if (firstRowParent && firstRowParent.tagName === "thead") return
+            const found = findFirstRow(table)
+            if (!found || found.parent?.tagName === "thead") return
 
-            const cells = firstRow.children.filter(
-              (c) => c.type === "element" && (c.tagName === "th" || c.tagName === "td")
-            )
-            if (cells.length === 0) return
-            if (cells.every((c) => c.tagName === "th")) return
+            const cells = found.row.children.filter(isCell)
+            if (cells.length === 0 || cells.every((c) => c.tagName === "th")) return
 
-            table.children.unshift({
-              type: "element",
-              tagName: "thead",
-              properties: {},
-              children: [
-                {
-                  type: "element",
-                  tagName: "tr",
-                  properties: {},
-                  children: cells.map(() => ({
-                    type: "element",
-                    tagName: "th",
-                    properties: {},
-                    children: [],
-                  })),
-                },
-              ],
-            })
+            table.children = [buildThead(cells), ...table.children]
           })
         }
-      }
-
-      // Inline phrasing tags that survive intact inside table cells. Anything
-      // else (block, unknown, <br>) gets unwrapped during flattening. <br> is
-      // intentionally excluded despite being phrasing — turndown emits "  \n"
-      // for it, which would shatter the GFM table.
-      const INLINE_PHRASING_TAGS = new Set([
-        "a", "abbr", "b", "bdi", "bdo", "cite", "code", "data", "dfn", "em",
-        "i", "kbd", "mark", "q", "rp", "rt", "ruby", "s", "samp", "small",
-        "span", "strong", "sub", "sup", "time", "u", "var", "wbr",
-        "del", "ins", "img",
-      ])
-
-      // Recursively flatten a hast node intended for placement inside a
-      // table cell. Returns an array of nodes containing only text and
-      // inline-phrasing elements; any block descendant is unwrapped with a
-      // space text node on either side so adjacent unwrapped siblings
-      // don't smush together. Whitespace runs inside text nodes are
-      // collapsed to a single space.
-      function flattenCellNode(node) {
-        if (node.type === "text") {
-          return [{ type: "text", value: node.value.replace(/\s+/g, " ") }]
-        }
-        if (node.type === "element") {
-          const kids = node.children.flatMap(flattenCellNode)
-          if (INLINE_PHRASING_TAGS.has(node.tagName)) {
-            return [{ ...node, children: kids }]
-          }
-          return [{ type: "text", value: " " }, ...kids, { type: "text", value: " " }]
-        }
-        return []
       }
 
       /**
@@ -492,38 +468,68 @@ permalink: /get-down/
        * uniformly rather than special-casing them.
        */
       function rehypeFlattenTableCells() {
+        // Inline phrasing tags that survive intact inside table cells. Anything
+        // else (block, unknown, <br>) gets unwrapped during flattening. <br> is
+        // intentionally excluded despite being phrasing — turndown emits "  \n"
+        // for it, which would shatter the GFM table.
+        const INLINE_PHRASING_TAGS = new Set([
+          "a", "abbr", "b", "bdi", "bdo", "cite", "code", "data", "dfn", "em",
+          "i", "kbd", "mark", "q", "rp", "rt", "ruby", "s", "samp", "small",
+          "span", "strong", "sub", "sup", "time", "u", "var", "wbr",
+          "del", "ins", "img",
+        ])
+
+        // Recursively flatten a hast node intended for placement inside a
+        // table cell. Returns an array of nodes containing only text and
+        // inline-phrasing elements; any block descendant is unwrapped with a
+        // space text node on either side so adjacent unwrapped siblings
+        // don't smush together. Whitespace runs inside text nodes are
+        // collapsed to a single space.
+        const flattenCellNode = (node) => {
+          if (node.type === "text") {
+            return [{ type: "text", value: node.value.replace(/\s+/g, " ") }]
+          }
+          if (node.type !== "element") return []
+
+          const kids = node.children.flatMap(flattenCellNode)
+          return INLINE_PHRASING_TAGS.has(node.tagName)
+            ? [{ ...node, children: kids }]
+            : [{ type: "text", value: " " }, ...kids, { type: "text", value: " " }]
+        }
+
+        // Merge a child into the accumulator, coalescing adjacent text
+        // nodes so the next pass can collapse whitespace runs that span
+        // former unwrap boundaries.
+        const coalesceText = (acc, child) => {
+          const last = acc.at(-1)
+          return child.type === "text" && last?.type === "text"
+            ? acc.with(-1, { type: "text", value: last.value + child.value })
+            : [...acc, child]
+        }
+
+        // Collapse \s+ to single space; trim leading whitespace from the
+        // first text node and trailing whitespace from the last.
+        const normaliseWhitespace = (child, i, arr) => {
+          if (child.type !== "text") return child
+          const collapsed = child.value.replace(/\s+/g, " ")
+          const ltrimmed = i === 0 ? collapsed.replace(/^\s+/, "") : collapsed
+          const trimmed =
+            i === arr.length - 1 ? ltrimmed.replace(/\s+$/, "") : ltrimmed
+          return { type: "text", value: trimmed }
+        }
+
+        const isNonEmpty = (child) =>
+          child.type !== "text" || child.value !== ""
+
         return (tree) => {
           visit(tree, { type: "element" }, (node) => {
             if (node.tagName !== "td" && node.tagName !== "th") return
 
-            const flat = node.children.flatMap(flattenCellNode)
-
-            // Coalesce adjacent direct-child text nodes so the final
-            // whitespace pass can collapse runs spanning former unwrap
-            // boundaries (e.g. trailing space of one block + leading space
-            // of the next).
-            const coalesced = []
-            for (const child of flat) {
-              const last = coalesced[coalesced.length - 1]
-              if (child.type === "text" && last?.type === "text") {
-                last.value += child.value
-              } else {
-                coalesced.push(child)
-              }
-            }
-
-            // Collapse \s+ to single space; trim leading whitespace from
-            // the first text node and trailing whitespace from the last;
-            // drop any text node that becomes empty.
-            node.children = coalesced
-              .map((child, i, arr) => {
-                if (child.type !== "text") return child
-                let v = child.value.replace(/\s+/g, " ")
-                if (i === 0) v = v.replace(/^\s+/, "")
-                if (i === arr.length - 1) v = v.replace(/\s+$/, "")
-                return { type: "text", value: v }
-              })
-              .filter((child) => child.type !== "text" || child.value !== "")
+            node.children = node.children
+              .flatMap(flattenCellNode)
+              .reduce(coalesceText, [])
+              .map(normaliseWhitespace)
+              .filter(isNonEmpty)
           })
         }
       }
@@ -733,12 +739,18 @@ permalink: /get-down/
       // size — works equally at the splash headline size and inline at body
       // size. Used twice: as the standalone pre-hover headline, and at the
       // tail of the on-hover description sentence.
-      function KbdHint({ mod }) {
+      //
+      // The `inline` prop drops the per-glyph lifts entirely. At body size
+      // the surrounding sans paragraph baseline plus subpixel rounding makes
+      // any em-scale nudge read as off; relying on `items-baseline` alone
+      // gives the cleanest result. At splash size the lifts are still needed
+      // to centerline-align +/v with ⌘/ctrl uppercase glyphs.
+      function KbdHint({ mod, inline = false }) {
         return (
           <span className="font-mono inline-flex items-baseline gap-[0.4em]">
             <span>{mod}</span>
-            <span className="-translate-y-[0.06em]">+</span>
-            <span className="text-[0.95em] -translate-y-[0.12em]">v</span>
+            <span className={inline ? "" : "-translate-y-[0.06em]"}>+</span>
+            <span className={`text-[0.95em] ${inline ? "" : "-translate-y-[0.12em]"}`}>v</span>
           </span>
         )
       }
@@ -871,6 +883,15 @@ permalink: /get-down/
           handleCopyText(toBlockquote(markdown), "Copied as blockquote!")
         }
 
+        // Reset to the pre-paste splash. Wipes the markdown buffer and the
+        // contentEditable's residual content so a subsequent paste re-triggers
+        // the full entrance animation rather than just swapping content.
+        const handleLightsOut = () => {
+          setMarkdown("")
+          setPartyStarted(false)
+          if (pasteRef.current) pasteRef.current.innerHTML = ""
+        }
+
         // Hidden 1×1px contentEditable, off-screen, focused at all times. Catches
         // ⌘V/Ctrl+V regardless of where focus appears to be on the visible page.
         const pasteCatcher = (
@@ -896,7 +917,7 @@ permalink: /get-down/
             <span aria-hidden="true" className="block text-[35cqw]">GET</span>
             <span aria-hidden="true" className="block text-[26cqw]">DOWN</span>
             <Sparkle className="absolute -top-3 -left-2 sm:-top-4 sm:-left-3 w-12 h-12 sm:w-14 sm:h-14" />
-            <Sparkle className="absolute -bottom-3 -right-2 sm:-bottom-4 sm:-right-3 w-8 h-8 sm:w-10 sm:h-10" />
+            <Sparkle className="absolute -bottom-5 -right-4 sm:-bottom-6 sm:-right-5 w-8 h-8 sm:w-10 sm:h-10" />
           </h1>
         )
 
@@ -945,7 +966,7 @@ permalink: /get-down/
                       <KbdHint mod={kbdMod} />
                     </p>
                     <p className="[grid-area:1/1] text-slate-400 text-center text-balance opacity-0 transition-opacity duration-150 group-hover:opacity-100 pointer-coarse:opacity-100">
-                      Paste rich text to convert it to markdown. Works with Google Docs, Notion, browser pages, email, and more — <KbdHint mod={kbdMod} />
+                      Paste rich text to convert it to markdown. Works with Google Docs, Notion, browser pages, email, and more — <KbdHint mod={kbdMod} inline />
                     </p>
                   </div>
                 </div>
@@ -977,7 +998,7 @@ permalink: /get-down/
                     emojis, blurred backdrop, white/10 edge for the lit-glass rim. */}
                 <section
                   aria-label="Markdown output"
-                  className="relative flex-1 min-h-0 my-4 flex flex-col overflow-hidden rounded-xl border border-white/10 bg-slate-950/60 backdrop-blur-md"
+                  className="relative flex-1 min-h-0 my-4 flex flex-col overflow-hidden rounded-[12px] border border-white/10 bg-slate-950/60 backdrop-blur-md"
                 >
                   <pre className="absolute inset-0 overflow-auto scrollbar-none p-5 text-sm whitespace-pre-wrap break-words font-mono leading-relaxed">
                     <code
@@ -989,12 +1010,12 @@ permalink: /get-down/
                       Outer container clips inner button hover backgrounds to the rounded
                       pill shape via overflow-hidden. Inner buttons are rectangular; the
                       divider is a left border on the right segment. */}
-                  <div className="absolute top-2 right-2 flex overflow-hidden rounded-full border border-white/10 bg-slate-800/80 backdrop-blur-md text-slate-100">
+                  <div className="absolute top-2 right-2 grid grid-cols-2 overflow-hidden rounded-[4px] border border-white/10 bg-slate-800/80 backdrop-blur-md text-slate-100">
                     <button
                       onClick={handleCopyQuote}
                       aria-label="Copy as blockquote"
                       title="Copy as blockquote"
-                      className="flex items-center gap-1 px-2.5 py-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
+                      className="flex items-center justify-center gap-1 px-2.5 py-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
                     >
                       <span className="font-semibold text-base leading-none">{">"}</span>
                       <svg
@@ -1017,7 +1038,7 @@ permalink: /get-down/
                       onClick={handleCopy}
                       aria-label="Copy markdown"
                       title="Copy"
-                      className="border-l border-white/10 p-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
+                      className="flex items-center justify-center border-l border-white/10 px-2.5 py-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1038,12 +1059,20 @@ permalink: /get-down/
                   </div>
                 </section>
 
-                <footer className="shrink-0 px-3 text-xs text-slate-400 grid grid-cols-2 gap-x-4 gap-y-1">
+                <footer className="shrink-0 px-3 text-xs text-slate-400 grid grid-cols-3 gap-x-4 gap-y-1">
                   <p>
                     Made by{" "}
                     <a href="/" className="no-underline hover:text-slate-300">
                       Kieran
                     </a>
+                  </p>
+                  <p className="text-center">
+                    <button
+                      onClick={handleLightsOut}
+                      className="no-underline hover:text-slate-300 cursor-pointer"
+                    >
+                      🌝 Lights out
+                    </button>
                   </p>
                   <p className="text-right">
                     <a href="/tools/" className="no-underline hover:text-slate-300">
