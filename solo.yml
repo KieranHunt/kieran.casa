@@ -1,0 +1,11 @@
+name: kieran.casa
+icon: null
+icon_initials: 🤙
+processes:
+  jekyll serve:
+    command: bundle exec jekyll serve --drafts --livereload
+    working_dir: null
+    auto_start: true
+    auto_restart: false
+    restart_when_changed: []
+    env: {}
