@@ -10,7 +10,7 @@ permalink: /get-down/
     <title>Get Down 🕺</title>
     <meta
       name="description"
-      content="Convert pasted rich text from your browser, docs, or email into clean Markdown — preserving headings, lists, links, and tables."
+      content="Convert pasted rich text from your browser, docs, or email into clean Markdown and more — preserving headings, lists, links, and tables."
     />
 
     <!-- Favicon: 🪩 disco ball, served as Apple-style PNG via emojicdn.elk.sh
@@ -34,6 +34,7 @@ permalink: /get-down/
          fetch off in parallel with that compile step. -->
     <link rel="modulepreload" href="https://esm.sh/prettier@3/standalone" crossorigin />
     <link rel="modulepreload" href="https://esm.sh/prettier@3/plugins/markdown" crossorigin />
+    <link rel="modulepreload" href="https://esm.sh/jira2md@3" crossorigin />
 
     <!-- Site-built Tailwind 4 utilities -->
     <link href="{{ '/assets/index.css' | relative_url }}" rel="stylesheet" />
@@ -359,7 +360,8 @@ permalink: /get-down/
           "rehype-stringify": "https://esm.sh/rehype-stringify@10",
           "unist-util-visit": "https://esm.sh/unist-util-visit@5",
           "prettier": "https://esm.sh/prettier@3/standalone",
-          "prettier/plugins/markdown": "https://esm.sh/prettier@3/plugins/markdown"
+          "prettier/plugins/markdown": "https://esm.sh/prettier@3/plugins/markdown",
+          "jira2md": "https://esm.sh/jira2md@3"
         }
       }
     </script>
@@ -381,6 +383,8 @@ permalink: /get-down/
       import { visit } from "unist-util-visit"
       import * as prettier from "prettier"
       import * as prettierMarkdown from "prettier/plugins/markdown"
+      // jira2md is CJS; the default import is its module.exports ({ to_jira, … }).
+      import j2m from "jira2md"
 
       const turndownService = new TurndownService({
         headingStyle: "atx",
@@ -396,6 +400,79 @@ permalink: /get-down/
       turndownService.use(gfm)
       // Strip noise that browsers/editors paste alongside content
       turndownService.remove(["style", "script", "meta", "head", "title", "link"])
+
+      // === Jira Wiki Markup syntax highlighting ===
+      // highlight.js ships a markdown grammar but nothing for Jira. Since the
+      // Jira tab is always jira2md output (derived from the markdown above), we
+      // register a small grammar tuned to what jira2md actually emits, mapping
+      // every token onto the SAME .hljs-* classes the markdown grammar uses — so
+      // the hand-rolled "Violet Mono" theme colours both tabs identically with
+      // zero extra CSS. Structure mirrors hljs's own markdown grammar with the
+      // delimiters swapped for Jira's: headings/quotes are whole-line with nested
+      // inline formatting, bold/italic/mono include their delimiters, link
+      // text=string + url=link, code blocks are one span. Strikethrough (-x-) and
+      // tables have no rule, so they render plain — exactly as the markdown tab does.
+      function jiraWikiMarkup(hljs) {
+        // Jira bold is a SINGLE asterisk (*x*); markdown's single-* is italic, so
+        // we borrow markdown's italic regex shape but tag it 'strong'.
+        const BOLD = { className: "strong", begin: /\*(?![*\s])/, end: /\*/, contains: [] }
+        // Jira italic is _x_ — markdown's underscore italic, verbatim.
+        const ITALIC = { className: "emphasis", begin: /_(?![_\s])/, end: /_/, contains: [] }
+        // Inline monospace {{x}} → code (matches markdown inline `code`).
+        const MONO = { className: "code", begin: /\{\{/, end: /\}\}/ }
+        // [text|url] → text=string, url=link (markdown tags link text=string, url=link).
+        const LINK = {
+          begin: /\[[^\]\n]*\|[^\]\n]*\]/,
+          returnBegin: true,
+          contains: [
+            { className: "string", begin: /\[/, end: /(?=\|)/, excludeBegin: true },
+            { className: "link", begin: /\|/, end: /\]/, excludeBegin: true, excludeEnd: true },
+          ],
+        }
+        // !url! image → url=link, bangs plain (markdown image url=link). The
+        // lookahead (non-space run then a closing !) keeps prose like "Wow!" safe.
+        const IMAGE = {
+          className: "link",
+          begin: /!(?=[^!\s]+!)/,
+          end: /!/,
+          excludeBegin: true,
+          excludeEnd: true,
+        }
+        // One-level mutual nesting, exactly like the markdown grammar (prevents
+        // runaway recursion on pathological input).
+        const BOLD_NO_ITALIC = hljs.inherit(BOLD, { contains: [] })
+        const ITALIC_NO_BOLD = hljs.inherit(ITALIC, { contains: [] })
+        const INLINE = [LINK, IMAGE, MONO]
+        BOLD_NO_ITALIC.contains = [...INLINE]
+        ITALIC_NO_BOLD.contains = [...INLINE]
+        BOLD.contains = [ITALIC_NO_BOLD, ...INLINE]
+        ITALIC.contains = [BOLD_NO_ITALIC, ...INLINE]
+        const CONTAINABLE = [LINK, IMAGE, MONO, BOLD, ITALIC]
+
+        return {
+          name: "Jira Wiki Markup",
+          aliases: ["jira"],
+          contains: [
+            // Line-anchored block constructs first, so a line-start marker wins
+            // over the inline rules (e.g. "- " is a bullet, not strikethrough).
+            { className: "section", begin: /^h[1-6]\./, end: /$/, contains: CONTAINABLE },
+            { className: "quote", begin: /^bq\./, end: /$/, contains: CONTAINABLE },
+            // Unordered '-', ordered '#'/'##'; only the marker is the bullet span.
+            { className: "bullet", begin: /^[ \t]*(-|#{1,})(?=\s+)/, end: /\s+/, excludeEnd: true },
+            // {code} / {code:lang} … {code} → one span (matches md fenced block).
+            { className: "code", begin: /\{code(:[^}]*)?\}/, end: /\{code\}/ },
+            MONO,
+            LINK,
+            IMAGE,
+            BOLD,
+            ITALIC,
+          ],
+        }
+      }
+      if (window.hljs && !window.hljs.getLanguage("jira")) {
+        window.hljs.registerLanguage("jira", jiraWikiMarkup)
+      }
+      // === end Jira Wiki Markup syntax highlighting ===
 
       // === HTML preprocessing (rehype/unified pipeline) ===
 
@@ -548,6 +625,10 @@ permalink: /get-down/
       // CommonMark/GFM renderers without leaving stray trailing whitespace.
       const toBlockquote = (md) =>
         md.split("\n").map((line) => (line ? `> ${line}` : ">")).join("\n")
+
+      // Jira's blockquote is a {quote}…{quote} block (handles multi-line/
+      // multi-paragraph content, unlike the single-line "bq." prefix).
+      const toJiraQuote = (jira) => `{quote}\n${jira}\n{quote}`
 
       // Three-layer purple glow text-shadow for the disco-poster title:
       // light violet text with progressively darker, larger violet halos behind.
@@ -781,8 +862,47 @@ permalink: /get-down/
         )
       }
 
+      // Clipboard glyph for the copy buttons (Heroicons "document-duplicate").
+      function ClipboardIcon() {
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-4"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
+            />
+          </svg>
+        )
+      }
+
+      // Tab label that reserves the bold (active) width in BOTH states, by
+      // stacking an always-bold invisible copy under the visible one in the same
+      // grid cell. Switching tabs swaps weight/colour inside a fixed-width box,
+      // so the tab strip never reflows.
+      function TabLabel({ active, children }) {
+        return (
+          <span className="grid">
+            <span aria-hidden="true" className="[grid-area:1/1] font-semibold invisible">{children}</span>
+            <span className={`[grid-area:1/1] ${active ? "font-semibold" : "font-normal"}`}>{children}</span>
+          </span>
+        )
+      }
+
       function App() {
         const [markdown, setMarkdown] = useState("")
+        // Jira Wiki Markup, derived from `markdown` on each paste.
+        const [jira, setJira] = useState("")
+        // Active output tab: "markdown" | "jira". Persists across pastes;
+        // reset to "markdown" by Lights out.
+        const [tab, setTab] = useState("markdown")
         // The party (emoji background + markdown card + footer) only starts after
         // a successful rich-text paste. Pre-paste, the page is just the H1 + a
         // keyboard-shortcut hint, centered in the viewport.
@@ -822,6 +942,14 @@ permalink: /get-down/
           [markdown]
         )
 
+        const highlightedJira = useMemo(
+          () =>
+            jira
+              ? window.hljs.highlight(jira, { language: "jira", ignoreIllegals: true }).value
+              : "",
+          [jira]
+        )
+
         const handlePaste = async (e) => {
           e.preventDefault()
           const html = e.clipboardData.getData("text/html")
@@ -851,6 +979,8 @@ permalink: /get-down/
             return
           }
           setMarkdown(md)
+          // Derive Jira Wiki Markup from the clean, prettier-normalised markdown.
+          setJira(j2m.to_jira(md))
           // Successful conversion → drop the beat. Splash → party (one-way).
           // Subsequent pastes after this point just replace the markdown content.
           setPartyStarted(true)
@@ -875,12 +1005,15 @@ permalink: /get-down/
 
         const handleCopy = () => {
           if (!markdown) return
-          handleCopyText(markdown, "Copied!")
+          handleCopyText(tab === "jira" ? jira : markdown, "Copied!")
         }
 
         const handleCopyQuote = () => {
           if (!markdown) return
-          handleCopyText(toBlockquote(markdown), "Copied as blockquote!")
+          handleCopyText(
+            tab === "jira" ? toJiraQuote(jira) : toBlockquote(markdown),
+            "Copied as blockquote!"
+          )
         }
 
         // Reset to the pre-paste splash. Wipes the markdown buffer and the
@@ -888,6 +1021,8 @@ permalink: /get-down/
         // the full entrance animation rather than just swapping content.
         const handleLightsOut = () => {
           setMarkdown("")
+          setJira("")
+          setTab("markdown")
           setPartyStarted(false)
           if (pasteRef.current) pasteRef.current.innerHTML = ""
         }
@@ -966,7 +1101,7 @@ permalink: /get-down/
                       <KbdHint mod={kbdMod} />
                     </p>
                     <p className="[grid-area:1/1] text-slate-400 text-center text-balance opacity-0 transition-opacity duration-150 group-hover:opacity-100 pointer-coarse:opacity-100">
-                      Paste rich text to convert it to markdown. Works with Google Docs, Notion, browser pages, email, and more — <KbdHint mod={kbdMod} inline />
+                      Paste rich text to convert it to Markdown and more. Works with Google Docs, Notion, browser pages, and email — <KbdHint mod={kbdMod} inline />
                     </p>
                   </div>
                 </div>
@@ -993,70 +1128,83 @@ permalink: /get-down/
                   {titleH1}
                 </header>
 
-                {/* Markdown card fills remaining vertical space; <pre> scrolls inside.
+                {/* Output card fills remaining vertical space; <pre> scrolls inside.
                     Frosted-glass: semi-transparent slate-950 over the floating
                     emojis, blurred backdrop, white/10 edge for the lit-glass rim. */}
                 <section
-                  aria-label="Markdown output"
+                  aria-label="Converted output"
                   className="relative flex-1 min-h-0 my-4 flex flex-col overflow-hidden rounded-[12px] border border-white/10 bg-slate-950/60 backdrop-blur-md"
                 >
-                  <pre className="absolute inset-0 overflow-auto scrollbar-none p-5 text-sm whitespace-pre-wrap break-words font-mono leading-relaxed">
-                    <code
-                      className="language-markdown hljs"
-                      dangerouslySetInnerHTML={{ __html: highlighted }}
-                    />
-                  </pre>
-                  {/* Two-segment pill: "Copy as blockquote" (left) + plain "Copy" (right).
-                      Outer container clips inner button hover backgrounds to the rounded
-                      pill shape via overflow-hidden. Inner buttons are rectangular; the
-                      divider is a left border on the right segment. */}
-                  <div className="absolute top-2 right-2 grid grid-cols-2 overflow-hidden rounded-[4px] border border-white/10 bg-slate-800/80 backdrop-blur-md text-slate-100">
-                    <button
-                      onClick={handleCopyQuote}
-                      aria-label="Copy as blockquote"
-                      title="Copy as blockquote"
-                      className="flex items-center justify-center gap-1 px-2.5 py-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
-                    >
-                      <span className="font-semibold text-base leading-none">{">"}</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="size-4"
-                        aria-hidden="true"
+                  {/* Header strip: underline format tabs (left) + copy pill (right).
+                      Markdown is the canonical output; Jira is derived from it. */}
+                  <div className="flex items-center justify-between gap-2 pl-4 pr-2 shrink-0 border-b border-white/10">
+                    <div role="tablist" aria-label="Output format" className="flex gap-6">
+                      {[
+                        ["markdown", "Markdown"],
+                        ["jira", "Jira"],
+                      ].map(([key, label]) => {
+                        const active = tab === key
+                        return (
+                          <button
+                            key={key}
+                            role="tab"
+                            aria-selected={active}
+                            onClick={() => setTab(key)}
+                            className={
+                              "relative py-3 text-sm cursor-pointer transition-colors " +
+                              (active ? "text-violet-200" : "text-slate-500 hover:text-slate-300")
+                            }
+                          >
+                            <TabLabel active={active}>{label}</TabLabel>
+                            {/* Glowing violet active indicator, sat on the strip's border. */}
+                            {active && (
+                              <span
+                                aria-hidden="true"
+                                className="absolute left-0 right-0 -bottom-px h-[3px] rounded-full bg-violet-400 shadow-[0_0_8px_var(--color-violet-400)]"
+                              />
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {/* Two-segment pill: "Copy as blockquote" (left) + plain "Copy" (right).
+                        Both act on the active tab. Outer container clips inner button
+                        hover backgrounds to the rounded pill shape via overflow-hidden. */}
+                    <div className="grid grid-cols-2 overflow-hidden rounded-[4px] border border-white/10 bg-slate-800/80 backdrop-blur-md text-slate-100 my-1.5">
+                      <button
+                        onClick={handleCopyQuote}
+                        aria-label="Copy as blockquote"
+                        title="Copy as blockquote"
+                        className="flex items-center justify-center gap-1 px-2.5 py-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={handleCopy}
-                      aria-label="Copy markdown"
-                      title="Copy"
-                      className="flex items-center justify-center border-l border-white/10 px-2.5 py-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="size-4"
-                        aria-hidden="true"
+                        <span className="font-semibold text-base leading-none">{">"}</span>
+                        <ClipboardIcon />
+                      </button>
+                      <button
+                        onClick={handleCopy}
+                        aria-label="Copy"
+                        title="Copy"
+                        className="flex items-center justify-center border-l border-white/10 px-2.5 py-1.5 transition-colors hover:bg-slate-700/80 cursor-pointer"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
-                        />
-                      </svg>
-                    </button>
+                        <ClipboardIcon />
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Output body: both tabs get hljs colouring via the shared "Violet Mono" theme. */}
+                  <pre className="flex-1 overflow-auto scrollbar-none p-5 text-sm whitespace-pre-wrap break-words font-mono leading-relaxed">
+                    {tab === "markdown" ? (
+                      <code
+                        className="language-markdown hljs"
+                        dangerouslySetInnerHTML={{ __html: highlighted }}
+                      />
+                    ) : (
+                      <code
+                        className="language-jira hljs"
+                        dangerouslySetInnerHTML={{ __html: highlightedJira }}
+                      />
+                    )}
+                  </pre>
                 </section>
 
                 <footer className="shrink-0 px-3 text-xs text-slate-400 grid grid-cols-3 gap-x-4 gap-y-1">
