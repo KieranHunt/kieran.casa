@@ -909,13 +909,46 @@ permalink: /get-down/
         )
       }
 
+      // Persisted output-format preference. Tool-namespaced key ("<tool>:<setting>")
+      // so other tools sharing this origin can adopt the same scheme without
+      // colliding. Reads are validated against the known tabs and fall back to
+      // "markdown"; every access is wrapped so disabled/throwing storage (private
+      // mode, etc.) degrades silently to the default rather than breaking paste.
+      const TAB_STORAGE_KEY = "get-down:tab"
+      const TAB_VALUES = ["markdown", "jira"]
+
+      const readStoredTab = () => {
+        try {
+          const stored = localStorage.getItem(TAB_STORAGE_KEY)
+          return TAB_VALUES.includes(stored) ? stored : "markdown"
+        } catch {
+          return "markdown"
+        }
+      }
+
+      const writeStoredTab = (value) => {
+        try {
+          localStorage.setItem(TAB_STORAGE_KEY, value)
+        } catch {
+          // storage unavailable (private mode / disabled) — just don't persist
+        }
+      }
+
       function App() {
         const [markdown, setMarkdown] = useState("")
         // Jira Wiki Markup, derived from `markdown` on each paste.
         const [jira, setJira] = useState("")
-        // Active output tab: "markdown" | "jira". Persists across pastes;
-        // reset to "markdown" by Lights out.
-        const [tab, setTab] = useState("markdown")
+        // Active output tab: "markdown" | "jira". Initialised from the persisted
+        // preference (readStoredTab) so a returning Jira user lands on Jira.
+        // Persists across pastes; a Lights out reset clears it back to "markdown".
+        const [tab, setTab] = useState(readStoredTab)
+
+        // Switch tabs and remember the choice: the stored value becomes the
+        // default tab on the next paste and on the next visit, until Lights out.
+        const selectTab = (key) => {
+          setTab(key)
+          writeStoredTab(key)
+        }
         // The party (emoji background + markdown card + footer) only starts after
         // a successful rich-text paste. Pre-paste, the page is just the H1 + a
         // keyboard-shortcut hint, centered in the viewport.
@@ -1029,13 +1062,15 @@ permalink: /get-down/
           )
         }
 
-        // Reset to the pre-paste splash. Wipes the markdown buffer and the
-        // contentEditable's residual content so a subsequent paste re-triggers
-        // the full entrance animation rather than just swapping content.
+        // Reset to the pre-paste splash — a full reset. Wipes the markdown/jira
+        // buffers and the contentEditable's residual content so a subsequent
+        // paste re-triggers the full entrance animation, and clears the persisted
+        // tab preference back to "markdown" (Lights out forgets your format too).
         const handleLightsOut = () => {
           setMarkdown("")
           setJira("")
           setTab("markdown")
+          writeStoredTab("markdown")
           setPartyStarted(false)
           if (pasteRef.current) pasteRef.current.innerHTML = ""
         }
@@ -1162,7 +1197,7 @@ permalink: /get-down/
                             key={key}
                             role="tab"
                             aria-selected={active}
-                            onClick={() => setTab(key)}
+                            onClick={() => selectTab(key)}
                             className={
                               "relative py-3 text-sm cursor-pointer transition-colors " +
                               (active ? "text-violet-200" : "text-slate-500 hover:text-slate-300")
