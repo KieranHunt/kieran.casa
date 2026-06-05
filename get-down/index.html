@@ -44,6 +44,19 @@ permalink: /get-down/
     <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
 
     <style>
+      /* Paint the canvas itself (the root element) slate-950 and declare the page
+         dark. `bg-slate-950` already lives on <body>, but a body background only
+         reaches the parts of the viewport the body actually covers / propagates to.
+         Pinning the same fill on <html> guarantees the entire viewport is slate-950
+         unconditionally — independent of body/main height, background propagation,
+         or fractional-scale GPU compositing where a 100vh layer's bottom edge can
+         miss the physical pixel grid and leave a hairline seam. `color-scheme: dark`
+         also yields dark UA scrollbars/controls and stops the browser auto-darkening
+         an already-dark page. #020617 == Tailwind slate-950. */
+      html {
+        color-scheme: dark;
+        background-color: #020617;
+      }
       .font-display {
         font-family: "Monoton", "Cooper Black", "Cooper Std", Georgia, serif;
       }
