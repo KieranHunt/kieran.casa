@@ -74,9 +74,28 @@
 }
 
 .post img {
-  @apply max-h-[384px];
-  @apply mx-auto;
-  @apply mb-4;
+  @apply max-w-full;
+}
+
+.post figure {
+  @apply my-3;
+  @apply text-center;
+}
+
+.post figure img {
+  @apply inline-block;
+  @apply w-auto;
+  @apply h-auto;
+  @apply max-h-[min(704px,80vh)];
+}
+
+.post figcaption {
+  @apply mx-5;
+  @apply mt-2;
+  @apply text-sm;
+  @apply font-medium;
+  @apply leading-snug;
+  @apply text-slate-400;
 }
 
 .post table {
