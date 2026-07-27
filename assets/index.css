@@ -86,16 +86,7 @@
   @apply inline-block;
   @apply w-auto;
   @apply h-auto;
-  @apply max-h-[min(704px,80vh)];
-}
-
-.post figcaption {
-  @apply mx-5;
-  @apply mt-2;
-  @apply text-sm;
-  @apply font-medium;
-  @apply leading-snug;
-  @apply text-slate-400;
+  @apply max-h-[min(var(--breakpoint-md),80vh)];
 }
 
 .post table {

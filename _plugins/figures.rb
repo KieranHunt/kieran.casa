@@ -1,9 +1,6 @@
 require "fastimage"
 
-# Rewrites standalone images into <figure> elements, hey.world style:
-# the image's markdown title becomes the caption.
-#
-#   ![alt text](/assets/photo.webp "Caption text")
+# Rewrites standalone images into <figure> elements, hey.world style.
 #
 # Images sharing a paragraph with other content are left alone, so inline
 # images keep working.
@@ -28,7 +25,6 @@ module Figures
   def self.figure(attributes, link_open, source)
     src = attribute(attributes, "src")
     alt = attribute(attributes, "alt")
-    caption = attribute(attributes, "title")
 
     image = +%(<img src="#{src}")
     image << %( alt="#{alt}") if alt
@@ -37,9 +33,7 @@ module Figures
     image << %( loading="lazy" decoding="async">)
     image = %(#{link_open}#{image}</a>) if link_open
 
-    figcaption = %(\n  <figcaption>#{caption}</figcaption>) unless caption.to_s.empty?
-
-    %(<figure>\n  #{image}#{figcaption}\n</figure>)
+    %(<figure>\n  #{image}\n</figure>)
   end
 
   def self.attribute(attributes, name)
@@ -49,11 +43,8 @@ module Figures
   def self.dimensions(src, source)
     return unless src&.start_with?("/")
 
-    @dimensions ||= {}
-    return @dimensions[src] if @dimensions.key?(src)
-
     path = File.join(source, src)
-    @dimensions[src] = FastImage.size(path) if File.file?(path)
+    FastImage.size(path) if File.file?(path)
   end
 end
 

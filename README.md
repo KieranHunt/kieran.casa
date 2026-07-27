@@ -20,3 +20,11 @@ bundle exec jekyll serve --drafts --livereload
 ```
 
 Then open <http://localhost:4000>.
+
+## Tests
+
+Specs cover the plugins in `_plugins`:
+
+```
+bundle exec rspec
+```
