@@ -24,13 +24,21 @@ module Figures
 
   def self.figure(attributes, link_open, source)
     src = attribute(attributes, "src")
-    alt = attribute(attributes, "alt")
-
-    image = +%(<img src="#{src}")
-    image << %( alt="#{alt}") if alt
     width, height = dimensions(src, source)
-    image << %( width="#{width}" height="#{height}") if width
-    image << %( loading="lazy" decoding="async">)
+
+    image_attributes = {
+      "src" => src,
+      "alt" => attribute(attributes, "alt"),
+      "width" => width,
+      "height" => height,
+      "loading" => "lazy",
+      "decoding" => "async"
+    }
+      .compact
+      .map { |name, value| %(#{name}="#{value}") }
+      .join(" ")
+
+    image = %(<img #{image_attributes}>)
     image = %(#{link_open}#{image}</a>) if link_open
 
     %(<figure>\n  #{image}\n</figure>)
