@@ -54,10 +54,17 @@ async function fetchText(base, filePath) {
 async function diffTextFiles() {
   const failures = [];
   for (const filePath of textFiles) {
-    const [preview, prod] = await Promise.all([
-      fetchText(previewUrl, filePath),
-      fetchText(prodUrl, filePath),
-    ]);
+    let preview;
+    let prod;
+    try {
+      [preview, prod] = await Promise.all([
+        fetchText(previewUrl, filePath),
+        fetchText(prodUrl, filePath),
+      ]);
+    } catch (error) {
+      failures.push({ page: filePath, viewport: "text", ratio: null, error: error.message.split("\n")[0] });
+      continue;
+    }
     if (normalizeText(filePath, preview) !== normalizeText(filePath, prod)) {
       const slug = slugify(filePath);
       await mkdir(path.join(outDir, slug), { recursive: true });
@@ -84,7 +91,7 @@ function slugify(pagePath) {
 async function capture(context, base, pagePath) {
   const page = await context.newPage();
   try {
-    await page.goto(new URL(pagePath, base).href, { waitUntil: "networkidle", timeout: 45_000 });
+    await page.goto(new URL(pagePath, base).href, { waitUntil: "load", timeout: 45_000 });
     await page.evaluate(async () => {
       for (const img of document.querySelectorAll("img[loading=lazy]")) img.loading = "eager";
       await document.fonts.ready;
@@ -140,8 +147,19 @@ async function diffPage(contexts, pagePath, viewport) {
     return { previewShot, prodShot, ...compareScreenshots(previewShot, prodShot) };
   };
 
-  let result = await attempt();
-  if (result.ratio > maxDiffRatio) result = await attempt();
+  let result;
+  try {
+    result = await attempt();
+    if (result.ratio > maxDiffRatio) result = await attempt();
+  } catch {
+    try {
+      result = await attempt();
+    } catch (error) {
+      const reason = error.message.split("\n")[0];
+      console.log(`error ${pagePath} [${viewport.name}]: ${reason}`);
+      return { page: pagePath, viewport: viewport.name, ratio: null, error: reason };
+    }
+  }
 
   if (result.ratio > maxDiffRatio) {
     const slug = `${slugify(pagePath)}-${viewport.name}`;
@@ -214,7 +232,7 @@ if (failures.length > 0) {
   const rows = failures.map(
     (failure) =>
       `| \`${failure.page}\` | ${failure.viewport} | ${
-        failure.ratio === null ? "content mismatch" : `${(failure.ratio * 100).toFixed(2)}% of pixels`
+        failure.error ?? (failure.ratio === null ? "content mismatch" : `${(failure.ratio * 100).toFixed(2)}% of pixels`)
       } |`
   );
   const report = [
