@@ -38,9 +38,17 @@ function normalizeText(filePath, text) {
 }
 
 async function fetchText(base, filePath) {
-  const response = await fetch(new URL(filePath, base));
-  if (!response.ok) throw new Error(`${response.status} for ${filePath} on ${base}`);
-  return response.text();
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const response = await fetch(new URL(filePath, base));
+      if (!response.ok) throw new Error(`${response.status} for ${filePath} on ${base}`);
+      return await response.text();
+    } catch (error) {
+      if (attempt >= 4) throw error;
+      console.log(`retrying ${filePath} on ${base} after: ${error.cause?.code ?? error.message}`);
+      await new Promise((resolve) => setTimeout(resolve, attempt * 3000));
+    }
+  }
 }
 
 async function diffTextFiles() {
