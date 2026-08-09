@@ -67,7 +67,7 @@ jobs:
           mergeable=$(gh pr view "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" --json mergeable --jq .mergeable)
           if [ "$mergeable" = "CONFLICTING" ]; then
             gh pr comment "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" \
-              --body "$(printf '@dependabot rebase\n\n(Visual diff passed but the branch now conflicts with master, likely because another PR merged first. Rebasing to retry.)')"
+              --body "Visual diff passed but the branch now conflicts with master, likely because another PR merged first. Waiting for dependabot to rebase; the fresh preview will retry."
             exit 0
           fi
           exit 1
@@ -87,8 +87,9 @@ jobs:
         run: |
           behind=$(gh api "repos/${{ github.repository }}/compare/master...${{ github.event.sha }}" --jq .behind_by)
           if [ "$behind" -gt 0 ]; then
+            gh api -X PUT "repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.number }}/update-branch"
             gh pr comment "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" \
-              --body "$(printf '@dependabot rebase\n\n(Deploy preview was %s commit(s) behind master, so the visual diff compared stale content. Rebasing to retry.)' "$behind")"
+              --body "Deploy preview was $behind commit(s) behind master, so the visual diff compared stale content. Updated the branch to retry on a fresh preview."
             exit 0
           fi
           {
