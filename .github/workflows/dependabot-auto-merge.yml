@@ -1,0 +1,102 @@
+name: Dependabot auto-merge
+
+on: status
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.sha }}
+  cancel-in-progress: true
+
+jobs:
+  visual-diff:
+    if: github.event.context == 'deploy/netlify' && github.event.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Find open dependabot PR for this commit
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr=$(gh api "repos/${{ github.repository }}/commits/${{ github.event.sha }}/pulls" \
+            --jq '[.[] | select(.state == "open" and .user.login == "dependabot[bot]" and .head.sha == "${{ github.event.sha }}")][0]')
+          if [ -z "$pr" ] || [ "$pr" = "null" ]; then
+            echo "No open dependabot PR with head ${{ github.event.sha }}; nothing to do."
+            exit 0
+          fi
+          jq -r '"number=\(.number)"' <<< "$pr" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.pr.outputs.number
+
+      - uses: actions/setup-node@v4
+        if: steps.pr.outputs.number
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: .github/visual-diff/package-lock.json
+
+      - name: Install diff dependencies
+        if: steps.pr.outputs.number
+        working-directory: .github/visual-diff
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Diff preview against production
+        id: diff
+        if: steps.pr.outputs.number
+        continue-on-error: true
+        working-directory: .github/visual-diff
+        env:
+          PREVIEW_URL: ${{ github.event.target_url }}
+          PROD_URL: https://kieran.casa
+        run: node diff.mjs
+
+      - name: Merge
+        if: steps.pr.outputs.number && steps.diff.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh pr merge "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" --squash --delete-branch; then
+            exit 0
+          fi
+          mergeable=$(gh pr view "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" --json mergeable --jq .mergeable)
+          if [ "$mergeable" = "CONFLICTING" ]; then
+            gh pr comment "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" \
+              --body "$(printf '@dependabot rebase\n\n(Visual diff passed but the branch now conflicts with master, likely because another PR merged first. Rebasing to retry.)')"
+            exit 0
+          fi
+          exit 1
+
+      - name: Upload diff images
+        id: artifact
+        if: steps.pr.outputs.number && steps.diff.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diff-pr-${{ steps.pr.outputs.number }}
+          path: .github/visual-diff/out
+
+      - name: Rebase if stale, otherwise flag for review
+        if: steps.pr.outputs.number && steps.diff.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          behind=$(gh api "repos/${{ github.repository }}/compare/master...${{ github.event.sha }}" --jq .behind_by)
+          if [ "$behind" -gt 0 ]; then
+            gh pr comment "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" \
+              --body "$(printf '@dependabot rebase\n\n(Deploy preview was %s commit(s) behind master, so the visual diff compared stale content. Rebasing to retry.)' "$behind")"
+            exit 0
+          fi
+          {
+            cat .github/visual-diff/out/failures.md 2>/dev/null || echo "Visual diff failed before producing a report; see the workflow logs."
+            echo
+            echo "Screenshots (preview/prod/diff): ${{ steps.artifact.outputs.artifact-url }}"
+            echo
+            echo "Not auto-merging. Review, then merge or close manually."
+          } > comment.md
+          gh pr comment "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" --body-file comment.md
+          exit 1
