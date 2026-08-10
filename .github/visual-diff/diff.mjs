@@ -108,8 +108,10 @@ async function capture(context, base, pagePath) {
       );
       const broken = [...document.images].filter((img) => img.src && img.naturalWidth === 0);
       if (broken.length > 0) throw new Error(`${broken.length} image(s) failed to load: ${broken[0].src}`);
+      await Promise.all([...document.images].map((img) => img.decode().catch(() => {})));
+      await new Promise((resolve) => requestIdleCallback(resolve, { timeout: 5000 }));
     });
-    await page.waitForTimeout(250);
+    await page.waitForTimeout(500);
     return await page.screenshot({ fullPage: true, animations: "disabled" });
   } finally {
     await page.close();
@@ -203,6 +205,7 @@ const newContext = async (viewport) => {
     deviceScaleFactor: 1,
     reducedMotion: "reduce",
   });
+  await context.route("**/.netlify/**", (route) => route.abort());
   await context.addInitScript(() => {
     let seed = 42;
     Math.random = () => {
