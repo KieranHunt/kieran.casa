@@ -106,6 +106,8 @@ async function capture(context, base, pagePath) {
               })
           )
       );
+      const broken = [...document.images].filter((img) => img.src && img.naturalWidth === 0);
+      if (broken.length > 0) throw new Error(`${broken.length} image(s) failed to load: ${broken[0].src}`);
     });
     await page.waitForTimeout(250);
     return await page.screenshot({ fullPage: true, animations: "disabled" });
@@ -148,16 +150,16 @@ async function diffPage(contexts, pagePath, viewport) {
   };
 
   let result;
-  try {
-    result = await attempt();
-    if (result.ratio > maxDiffRatio) result = await attempt();
-  } catch {
+  for (let attemptsLeft = 3; ; attemptsLeft--) {
     try {
       result = await attempt();
+      if (result.ratio <= maxDiffRatio || attemptsLeft <= 1) break;
     } catch (error) {
-      const reason = error.message.split("\n")[0];
-      console.log(`error ${pagePath} [${viewport.name}]: ${reason}`);
-      return { page: pagePath, viewport: viewport.name, ratio: null, error: reason };
+      if (attemptsLeft <= 1) {
+        const reason = error.message.split("\n")[0];
+        console.log(`error ${pagePath} [${viewport.name}]: ${reason}`);
+        return { page: pagePath, viewport: viewport.name, ratio: null, error: reason };
+      }
     }
   }
 

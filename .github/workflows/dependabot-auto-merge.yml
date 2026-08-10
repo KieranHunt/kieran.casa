@@ -87,9 +87,13 @@ jobs:
         run: |
           behind=$(gh api "repos/${{ github.repository }}/compare/master...${{ github.event.sha }}" --jq .behind_by)
           if [ "$behind" -gt 0 ]; then
-            gh api -X PUT "repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.number }}/update-branch"
-            gh pr comment "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" \
-              --body "Deploy preview was $behind commit(s) behind master, so the visual diff compared stale content. Updated the branch to retry on a fresh preview."
+            if gh api -X PUT "repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.number }}/update-branch"; then
+              gh pr comment "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" \
+                --body "Deploy preview was $behind commit(s) behind master, so the visual diff compared stale content. Updated the branch to retry on a fresh preview."
+            else
+              gh pr comment "${{ steps.pr.outputs.number }}" --repo "${{ github.repository }}" \
+                --body "Deploy preview was $behind commit(s) behind master and the branch could not be updated automatically, likely a conflict with another merge. Waiting for dependabot to rebase."
+            fi
             exit 0
           fi
           {
