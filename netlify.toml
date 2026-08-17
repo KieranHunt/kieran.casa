@@ -1,0 +1,6 @@
+[build]
+  command = "JEKYLL_ENV=production bundle exec jekyll build"
+  publish = "_site"
+
+[build.environment]
+  NODE_VERSION = "22"
