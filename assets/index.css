@@ -46,6 +46,14 @@
   @apply pb-4;
 }
 
+.post-revisions > summary {
+  list-style: none;
+}
+
+.post-revisions > summary::-webkit-details-marker {
+  display: none;
+}
+
 .post ul {
   @apply grid;
   @apply gap-y-2;

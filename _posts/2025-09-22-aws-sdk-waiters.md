@@ -3,13 +3,21 @@ layout: post
 title: "Use AWS SDK Waiters"
 permalink: /aws-sdk-waiters/
 date: 2025-09-22
+updates:
+  - date: 2025-10-15
+    note: >-
+      I've added an example of when a waiter exceeds its configured
+      `maxAttempts` value.
+  - date: 2025-10-05
+    note: >-
+      I've written about using waiters in Javascript/Typescript. Read about it
+      on [Typescript waiters are a bit weird](/aws-sdk-waiters-ts/).
+  - date: 2025-09-27
+    note: >-
+      Continuing on with waiters, I've written a new post about building your
+      own waiters for an resource. Read more at
+      [Write custom waiters](/custom-waiters/).
 ---
-
-2025-10-15: I've added an example of when a waiter exceeds its configured `maxAttempts` value.
-
-2025-10-05: I've written about using waiters in Javascript/Typescript. Read about it on [Typescript waiters are a bit weird](/aws-sdk-waiters-ts/).
-
-2025-09-27: Continuing on with waiters, I've written a new post about building your own waiters for an resource. Read more at [Write custom waiters](/custom-waiters/).
 
 Most distributed systems are eventually consistent. Callers instruct a resource to change from one state to another (like going from running to stopped) and must then wait some amount of time before that new state is achieved. 
 

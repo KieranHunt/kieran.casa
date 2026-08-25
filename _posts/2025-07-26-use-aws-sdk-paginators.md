@@ -3,9 +3,11 @@ layout: post
 title: "Stop writing AWS SDK pagination loops that break"
 permalink: /aws-sdk-paginators/
 date: 2025-07-26
+updates:
+  - date: 2025-07-27
+    note: >-
+      I updated this post to include details on paginators in other AWS SDKs.
 ---
-
-2025-07-27: I updated this post to include details on paginators in other AWS SDKs.
 
 I see this everywhere:
 
