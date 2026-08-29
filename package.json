@@ -19,7 +19,7 @@
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "autoprefixer": "^10.5.4",
-    "cssnano": "^8.0.6",
+    "cssnano": "^8.0.9",
     "postcss": "^8.5.25",
     "postcss-import": "^17.0.0",
     "tailwindcss": "^4.3.3"
