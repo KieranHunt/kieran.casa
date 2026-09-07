@@ -8,16 +8,19 @@
   --grid-template-columns-21: repeat(21, minmax(0, 1fr));
 }
 
-.page h2 {
+.page h2,
+.post h2 {
   @apply text-2xl;
   @apply font-bold;
+}
+
+.page h2,
+.post > h2:first-child {
   @apply mt-8;
   @apply mb-4;
 }
 
 .post h2 {
-  @apply text-2xl;
-  @apply font-bold;
   @apply mt-12;
   @apply mb-6;
 }
@@ -26,8 +29,6 @@
 .post > h2:first-child {
   @apply text-5xl;
   @apply leading-none;
-  @apply mt-8;
-  @apply mb-4;
 }
 
 .post h3 {
@@ -36,6 +37,15 @@
   @apply font-semibold;
   @apply mt-8;
   @apply mb-3;
+}
+
+/* Simulator include h3s carry their own utilities which the unlayered .post h3 rule beats; pin the pre-restyle rendering. */
+.post h3.text-lg {
+  @apply text-xl;
+  @apply leading-7;
+  @apply font-bold;
+  @apply mt-6;
+  @apply mb-4;
 }
 
 .post h4 {
@@ -51,9 +61,23 @@
   @apply text-white;
 }
 
+/* Prev/next nav links carry their own color and weight utilities which the unlayered .post a rule beats; pin the style the layout wrote. Italic and underline survive from the utility and .post a respectively. */
+.post > div:last-child a {
+  @apply text-slate-400;
+  @apply font-normal;
+}
+
 .post p {
   @apply my-5;
   @apply leading-7;
+}
+
+/* Simulator include hint paragraphs carry their own utilities which the unlayered .post p rule beats; pin the pre-restyle rendering. */
+.post p.text-xs {
+  @apply mt-1;
+  @apply mb-0;
+  @apply pb-4;
+  @apply leading-4;
 }
 
 /* Update-log notes carry their own spacing utilities which unlayered .post rules would otherwise override. */
@@ -145,11 +169,13 @@
   @apply whitespace-nowrap;
 }
 
-.post th:first-child {
+.post th:first-child,
+.post td:first-child {
   @apply pl-0;
 }
 
-.post th:last-child {
+.post th:last-child,
+.post td:last-child {
   @apply pr-0;
 }
 
@@ -158,14 +184,6 @@
   @apply align-baseline;
   @apply border-b;
   @apply border-slate-700;
-}
-
-.post td:first-child {
-  @apply pl-0;
-}
-
-.post td:last-child {
-  @apply pr-0;
 }
 
 .post tbody tr:last-child td {
