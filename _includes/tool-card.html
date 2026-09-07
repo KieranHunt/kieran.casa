@@ -3,64 +3,37 @@ Tool Card Component
 Parameters:
 - name: Tool name/title
 - description: Brief description of the tool
-- url: Link to the tool
+- url: Link to the tool (omit when chrome_url/firefox_url are set)
 - chrome_url: Optional Chrome Web Store link
 - firefox_url: Optional Firefox Add-ons link
-- color: Color scheme (default: slate)
+- i: Card position in the grid (0-based); drives the accent color
+
+Accent colors are generated, not chosen: hue = i × 137.508° (the golden
+angle), so each card's hue lands maximally far from its neighbours' and
+appending a card never recolors existing ones. The math lives in Tailwind
+arbitrary properties ([--tool:…]) on the card root because Tailwind only
+generates utilities it can scan literally in source files — it cannot build
+color classes from Liquid variables. Do not "simplify" this into dynamic
+class names like border-{{ color }}-500/20: those classes would never exist
+in the compiled CSS. Utilities reference the variables via the var shorthand
+(border-(--tool)/20, text-(--tool-light), …), which Tailwind compiles to
+color-mix() with an @supports fallback to the solid color for older browsers.
 {% endcomment %}
 
-{% assign color = include.color | default: "slate" %}
 {% assign has_browser_links = false %}
 {% if include.chrome_url or include.firefox_url %}
   {% assign has_browser_links = true %}
 {% endif %}
 
-{% if color == "blue" %}
-  {% assign card_classes = "no-underline block bg-slate-800 border border-blue-500/20 rounded-lg p-6 transition-all duration-200 h-full flex flex-col shadow-lg" %}
-  {% assign card_hover_classes = "hover:border-blue-400/30" %}
-  {% assign action_classes = "inline-flex items-center px-4 py-2 bg-blue-500/10 text-blue-300 rounded-lg font-medium group-hover:bg-blue-500/20 transition-colors duration-200" %}
-  {% assign button_classes = "inline-flex items-center px-4 py-2 bg-blue-500/10 text-blue-300 rounded-lg font-medium hover:bg-blue-500/20 transition-colors duration-200" %}
-{% elsif color == "green" %}
-  {% assign card_classes = "no-underline block bg-slate-800 border border-green-400/20 rounded-lg p-6 transition-all duration-200 h-full flex flex-col shadow-lg" %}
-  {% assign card_hover_classes = "hover:border-green-400/30" %}
-  {% assign action_classes = "inline-flex items-center px-4 py-2 bg-green-400/10 text-green-300 rounded-lg font-medium group-hover:bg-green-400/20 transition-colors duration-200" %}
-  {% assign button_classes = "inline-flex items-center px-4 py-2 bg-green-400/10 text-green-300 rounded-lg font-medium hover:bg-green-400/20 transition-colors duration-200" %}
-{% elsif color == "orange" %}
-  {% assign card_classes = "no-underline block bg-slate-800 border border-yellow-400/20 rounded-lg p-6 transition-all duration-200 h-full flex flex-col shadow-lg" %}
-  {% assign card_hover_classes = "hover:border-yellow-400/30" %}
-  {% assign action_classes = "inline-flex items-center px-4 py-2 bg-yellow-400/10 text-yellow-300 rounded-lg font-medium group-hover:bg-yellow-400/20 transition-colors duration-200" %}
-  {% assign button_classes = "inline-flex items-center px-4 py-2 bg-yellow-400/10 text-yellow-300 rounded-lg font-medium hover:bg-yellow-400/20 transition-colors duration-200" %}
-{% elsif color == "deep-orange" %}
-  {% assign card_classes = "no-underline block bg-slate-800 border border-orange-500/30 rounded-lg p-6 transition-all duration-200 h-full flex flex-col shadow-lg" %}
-  {% assign card_hover_classes = "hover:border-orange-400/50" %}
-  {% assign action_classes = "inline-flex items-center px-4 py-2 bg-orange-500/15 text-orange-200 rounded-lg font-medium group-hover:bg-orange-500/25 transition-colors duration-200" %}
-  {% assign button_classes = "inline-flex items-center px-4 py-2 bg-orange-500/15 text-orange-200 rounded-lg font-medium hover:bg-orange-500/25 transition-colors duration-200" %}
-{% elsif color == "purple" %}
-  {% assign card_classes = "no-underline block bg-slate-800 border border-purple-400/20 rounded-lg p-6 transition-all duration-200 h-full flex flex-col shadow-lg" %}
-  {% assign card_hover_classes = "hover:border-purple-400/30" %}
-  {% assign action_classes = "inline-flex items-center px-4 py-2 bg-purple-400/10 text-purple-300 rounded-lg font-medium group-hover:bg-purple-400/20 transition-colors duration-200" %}
-  {% assign button_classes = "inline-flex items-center px-4 py-2 bg-purple-400/10 text-purple-300 rounded-lg font-medium hover:bg-purple-400/20 transition-colors duration-200" %}
-{% elsif color == "pink" %}
-  {% assign card_classes = "no-underline block bg-slate-800 border border-pink-400/20 rounded-lg p-6 transition-all duration-200 h-full flex flex-col shadow-lg" %}
-  {% assign card_hover_classes = "hover:border-pink-400/30" %}
-  {% assign action_classes = "inline-flex items-center px-4 py-2 bg-pink-400/10 text-pink-300 rounded-lg font-medium group-hover:bg-pink-400/20 transition-colors duration-200" %}
-  {% assign button_classes = "inline-flex items-center px-4 py-2 bg-pink-400/10 text-pink-300 rounded-lg font-medium hover:bg-pink-400/20 transition-colors duration-200" %}
-{% elsif color == "red" %}
-  {% assign card_classes = "no-underline block bg-slate-800 border border-red-400/20 rounded-lg p-6 transition-all duration-200 h-full flex flex-col shadow-lg" %}
-  {% assign card_hover_classes = "hover:border-red-400/30" %}
-  {% assign action_classes = "inline-flex items-center px-4 py-2 bg-red-500/10 text-red-300 rounded-lg font-medium group-hover:bg-red-500/20 transition-colors duration-200" %}
-  {% assign button_classes = "inline-flex items-center px-4 py-2 bg-red-500/10 text-red-300 rounded-lg font-medium hover:bg-red-500/20 transition-colors duration-200" %}
-{% else %}
-  {% assign card_classes = "no-underline block bg-slate-800 border border-slate-500/20 rounded-lg p-6 transition-all duration-200 h-full flex flex-col shadow-lg" %}
-  {% assign card_hover_classes = "hover:border-slate-400/30" %}
-  {% assign action_classes = "inline-flex items-center px-4 py-2 bg-slate-500/10 text-slate-300 rounded-lg font-medium group-hover:bg-slate-500/20 transition-colors duration-200" %}
-  {% assign button_classes = "inline-flex items-center px-4 py-2 bg-slate-500/10 text-slate-300 rounded-lg font-medium hover:bg-slate-500/20 transition-colors duration-200" %}
-{% endif %}
+{% assign tool_vars = "[--tool:hsl(calc(var(--i,0)*137.508)_70%_65%)] [--tool-light:hsl(calc(var(--i,0)*137.508)_80%_78%)]" %}
+{% assign card_classes = "no-underline block bg-slate-800 border border-(--tool)/20 rounded-lg p-6 transition-all duration-200 h-full flex flex-col shadow-lg" %}
+{% assign action_classes = "inline-flex items-center px-4 py-2 bg-(--tool)/10 text-(--tool-light) rounded-lg font-medium group-hover:bg-(--tool)/20 transition-colors duration-200" %}
+{% assign button_classes = "inline-flex items-center px-4 py-2 bg-(--tool)/10 text-(--tool-light) rounded-lg font-medium hover:bg-(--tool)/20 transition-colors duration-200" %}
 
 {% if has_browser_links %}
-  <div class="{{ card_classes }}">
+  <div class="{{ tool_vars }} {{ card_classes }}" style="--i: {{ include.i | default: 0 }}">
 {% else %}
-  <a href="{{ include.url }}" class="{{ card_classes }} {{ card_hover_classes }} group">
+  <a href="{{ include.url }}" class="{{ tool_vars }} {{ card_classes }} hover:border-(--tool)/30 group" style="--i: {{ include.i | default: 0 }}">
 {% endif %}
   <div class="mb-4">
     <h3 class="text-xl font-semibold text-slate-100">{{ include.name }}</h3>
