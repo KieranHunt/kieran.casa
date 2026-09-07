@@ -8,10 +8,6 @@
   --grid-template-columns-21: repeat(21, minmax(0, 1fr));
 }
 
-.content-auto {
-  content-visibility: auto;
-}
-
 .post h2,
 .page h2 {
   @apply text-2xl;
@@ -38,20 +34,8 @@
   @apply underline;
 }
 
-.tool-card-link {
-  text-decoration: none;
-}
-
 .post p {
   @apply pb-4;
-}
-
-.post-revisions > summary {
-  list-style: none;
-}
-
-.post-revisions > summary::-webkit-details-marker {
-  display: none;
 }
 
 .post ul {

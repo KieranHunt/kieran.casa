@@ -22,9 +22,9 @@ layout: default
     </div>
     {% if page.latest_update %}
       <details
-        class="post-revisions group"
+        class="group"
       >
-        <summary class="grid cursor-pointer grid-cols-[max-content_1rem_1fr] gap-x-1 hover:text-slate-300">
+        <summary class="grid cursor-pointer grid-cols-[max-content_1rem_1fr] gap-x-1 list-none [&::-webkit-details-marker]:hidden hover:text-slate-300">
           <time class="tabular-nums" datetime="{{ page.latest_update.date | date_to_xmlschema }}">
             {{ page.latest_update.date | date: "%Y-%m-%d" }}
           </time>
