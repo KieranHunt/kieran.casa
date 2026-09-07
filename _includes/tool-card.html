@@ -8,16 +8,11 @@ Parameters:
 - firefox_url: Optional Firefox Add-ons link
 - i: Card position in the grid (0-based); drives the accent color
 
-Accent colors are generated, not chosen: hue = i × 137.508° (the golden
-angle), so each card's hue lands maximally far from its neighbours' and
-appending a card never recolors existing ones. The math lives in Tailwind
-arbitrary properties ([--tool:…]) on the card root because Tailwind only
-generates utilities it can scan literally in source files — it cannot build
-color classes from Liquid variables. Do not "simplify" this into dynamic
-class names like border-{{ color }}-500/20: those classes would never exist
-in the compiled CSS. Utilities reference the variables via the var shorthand
-(border-(--tool)/20, text-(--tool-light), …), which Tailwind compiles to
-color-mix() with an @supports fallback to the solid color for older browsers.
+Accent colors are generated, not chosen: 
+
+hue = i × 137.508° (the golden angle)
+
+Each card's hue lands maximally far from its neighbours' and appending a card never recolors existing ones. 
 {% endcomment %}
 
 {% assign has_browser_links = false %}
