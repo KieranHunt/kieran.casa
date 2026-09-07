@@ -8,7 +8,6 @@
   --grid-template-columns-21: repeat(21, minmax(0, 1fr));
 }
 
-.post h2,
 .page h2 {
   @apply text-2xl;
   @apply font-bold;
@@ -16,53 +15,93 @@
   @apply mb-4;
 }
 
-.post h3 {
-  @apply text-xl;
+.post h2 {
+  @apply text-2xl;
   @apply font-bold;
-  @apply mt-6;
+  @apply mt-12;
+  @apply mb-6;
+}
+
+/* The post layout title h2 sits inside article.post; pin it to the spacing the shared rule gave it. */
+.post > h2:first-child {
+  @apply mt-8;
   @apply mb-4;
 }
 
+.post h3 {
+  @apply text-xl;
+  @apply leading-8;
+  @apply font-semibold;
+  @apply mt-8;
+  @apply mb-3;
+}
+
 .post h4 {
-  @apply text-lg;
-  @apply font-bold;
-  @apply mt-4;
-  @apply mb-4;
+  @apply text-base;
+  @apply font-semibold;
+  @apply mt-6;
+  @apply mb-2;
 }
 
 .post a {
   @apply underline;
+  @apply font-medium;
+  @apply text-white;
 }
 
 .post p {
-  @apply pb-4;
+  @apply my-5;
+  @apply leading-7;
+}
+
+/* Update-log notes carry their own spacing utilities which unlayered .post rules would otherwise override. */
+.post dd > p {
+  @apply my-0;
+}
+
+.post dd > p + p {
+  @apply mt-2;
 }
 
 .post ul {
-  @apply grid;
-  @apply gap-y-2;
-  @apply pb-4;
-}
-
-.post ul > li:before {
-  content: "—";
-  @apply font-bold;
-  @apply mr-2;
+  @apply list-disc;
+  @apply my-5;
+  @apply ps-6.5;
 }
 
 .post ol {
-  @apply grid;
-  @apply gap-y-2;
-  @apply pb-4;
+  @apply list-decimal;
+  @apply my-5;
+  @apply ps-6.5;
 }
 
+.post li {
+  @apply my-2;
+  @apply leading-7;
+}
+
+.post li > p {
+  @apply my-3;
+}
+
+.post ul > li,
 .post ol > li {
-  @apply list-decimal;
-  @apply list-inside;
+  @apply ps-1.5;
+}
+
+.post ul > li::marker {
+  @apply text-slate-600;
 }
 
 .post ol > li::marker {
-  @apply font-bold;
+  @apply text-slate-500;
+}
+
+.post ul ul,
+.post ul ol,
+.post ol ul,
+.post ol ol {
+  @apply my-3;
 }
 
 .post img {
@@ -70,7 +109,7 @@
 }
 
 .post figure {
-  @apply my-3;
+  @apply my-8;
   @apply text-center;
 }
 
@@ -84,17 +123,18 @@
 .post table {
   @apply w-full;
   @apply text-sm;
-  @apply border-b;
-  @apply border-white/20;
-  @apply mb-4;
+  @apply leading-6;
   @apply table-fixed;
+  @apply my-8;
 }
 
 .post th {
   @apply font-semibold;
   @apply text-left;
+  @apply text-white;
+  @apply align-bottom;
   @apply border-b;
-  @apply border-white/20;
+  @apply border-slate-600;
   @apply pb-2;
   @apply px-2;
   @apply break-all;
@@ -112,22 +152,38 @@
 }
 
 .post td {
-  @apply py-2;
+  @apply p-2;
+  @apply align-baseline;
   @apply border-b;
-  @apply border-white/10;
+  @apply border-slate-700;
+}
+
+.post td:first-child {
+  @apply pl-0;
+}
+
+.post td:last-child {
+  @apply pr-0;
+}
+
+.post tbody tr:last-child td {
+  @apply border-b-0;
 }
 
 .post hr {
-  @apply border-b;
-  @apply border-white/90;
-  @apply mb-4;
+  @apply border-t;
+  @apply border-slate-700;
+  @apply my-12;
 }
 
-.post blockquote > p {
-  @apply border-l-4;
-  @apply border-white/10;
-  @apply pl-4;
-  @apply mb-4;
+.post blockquote {
+  @apply border-s-4;
+  @apply border-slate-700;
+  @apply ps-4;
+  @apply my-[1.6em];
+  @apply font-medium;
+  @apply italic;
+  @apply leading-7;
 }
 
 .post kbd>kbd {
@@ -148,8 +204,7 @@
 }
 
 .post pre.highlight {
-  @apply mb-8;
-  @apply mt-4;
+  @apply my-6;
   @apply font-mono;
   @apply ring-1;
   @apply ring-white/10;
