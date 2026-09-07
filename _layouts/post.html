@@ -22,7 +22,7 @@ layout: default
     </div>
     {% if page.latest_update %}
       <details
-        class="post-revisions group [interpolate-size:allow-keywords] [&::details-content]:[block-size:0] [&::details-content]:[overflow-y:clip] [&::details-content]:opacity-0 [&::details-content]:transition-[block-size,content-visibility,opacity] [&::details-content]:duration-100 [&::details-content]:ease-out [&::details-content]:[transition-behavior:allow-discrete] [&[open]::details-content]:[block-size:auto] [&[open]::details-content]:opacity-100"
+        class="post-revisions group"
       >
         <summary class="grid cursor-pointer grid-cols-[max-content_1rem_1fr] gap-x-1 hover:text-slate-300">
           <time class="tabular-nums" datetime="{{ page.latest_update.date | date_to_xmlschema }}">
