@@ -22,8 +22,10 @@
   @apply mb-6;
 }
 
-/* The post layout title h2 sits inside article.post; pin it to the spacing the shared rule gave it. */
+/* The title h2 lives inside article.post, where unlayered .post rules beat its utilities; pin the style the layout wrote. */
 .post > h2:first-child {
+  @apply text-5xl;
+  @apply leading-none;
   @apply mt-8;
   @apply mb-4;
 }
