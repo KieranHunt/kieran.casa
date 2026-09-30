@@ -25,8 +25,9 @@
   @apply mb-6;
 }
 
-/* The title h2 lives inside article.post, where unlayered .post rules beat its utilities; pin the style the layout wrote. */
-.post > h2:first-child {
+/* The title h2 lives inside article.post/article.page, where unlayered rules beat its utilities; pin the style the layout wrote. */
+.post > h2:first-child,
+.page > h2:first-child {
   @apply text-5xl;
   @apply leading-none;
 }
