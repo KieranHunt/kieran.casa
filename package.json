@@ -22,6 +22,6 @@
     "cssnano": "^9.9.0",
     "postcss": "^8.5.32",
     "postcss-import": "^17.0.1",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.4"
   }
 }
