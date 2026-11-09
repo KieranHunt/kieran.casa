@@ -645,6 +645,10 @@ permalink: /get-down/
       // multi-paragraph content, unlike the single-line "bq." prefix).
       const toJiraQuote = (jira) => `{quote}\n${jira}\n{quote}`
 
+      // GoatCounter custom event; silent no-op when an adblocker has blocked
+      // gc.zgo.at — analytics must never break the tool it observes.
+      const track = (path) => window.goatcounter?.count({ event: true, path })
+
       // Three-layer purple glow text-shadow for the disco-poster title:
       // light violet text with progressively darker, larger violet halos behind.
       const TITLE_GLOW =
@@ -1033,6 +1037,7 @@ permalink: /get-down/
           // Subsequent pastes after this point just replace the markdown content.
           setPartyStarted(true)
           toast.success("Converted!")
+          track("getdown-paste")
           if (pasteRef.current) pasteRef.current.innerHTML = ""
         }
 
@@ -1046,6 +1051,7 @@ permalink: /get-down/
           try {
             await navigator.clipboard.writeText(text)
             toast.success(successMessage)
+            track("getdown-copy")
           } catch {
             toast.error("Couldn't copy — try selecting the text manually.")
           }
