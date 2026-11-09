@@ -7,5 +7,6 @@ gem "jekyll-postcss"
 gem "jekyll-sitemap"
 
 group :test do
+  gem "nokogiri"
   gem "rspec", "~> 3.13"
 end
